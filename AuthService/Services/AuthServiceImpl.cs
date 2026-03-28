@@ -34,4 +34,31 @@ public class AuthServiceImpl : IAuthService
 
         await _userRepository.AddAsync(user);
     }
+
+    public async Task<LoginResponse> LoginAsync(LoginRequest request)
+    {
+        var existingUser = await _userRepository.GetByEmailAsync(request.Email);
+
+        if (existingUser == null)
+        {
+            throw new Exception("Такой пользователь не найден");
+        }
+
+        var isPasswordValid = BCrypt.Net.BCrypt.Verify(
+            request.Password,
+            existingUser.PasswordHash
+        );
+
+        if (!isPasswordValid)
+        {
+            throw new Exception("Неверный пароль");
+        }
+
+        var token = "temporary-token";
+
+        return new LoginResponse
+        {
+            Token = token
+        };
+    }
 }
