@@ -7,10 +7,12 @@ namespace AuthService.Services;
 public class AuthServiceImpl : IAuthService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IJwtService _jwtService;
 
-    public AuthServiceImpl(IUserRepository userRepository)
+    public AuthServiceImpl(IUserRepository userRepository, IJwtService jwtService)
     {
         _userRepository = userRepository;
+        _jwtService = jwtService;
     }
 
     public async Task RegisterAsync(RegisterRequest request)
@@ -54,7 +56,7 @@ public class AuthServiceImpl : IAuthService
             throw new Exception("Неверный пароль");
         }
 
-        var token = "temporary-token";
+        var token = _jwtService.GenerateToken(existingUser);
 
         return new LoginResponse
         {
