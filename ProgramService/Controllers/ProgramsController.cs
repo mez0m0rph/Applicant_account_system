@@ -47,4 +47,11 @@ public class ProgramsController : ControllerBase
         return Ok(degree);
     }
 
+    [HttpPost("sync")]
+    public async Task<IActionResult> Sync()
+    {
+        await _service.SyncProgramsAsync();
+        return Ok("Sync completed");
+    }
+
 }
