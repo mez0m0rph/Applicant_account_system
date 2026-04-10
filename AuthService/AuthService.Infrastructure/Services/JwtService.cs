@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace AuthService.Infrastructure.Services;
@@ -11,6 +12,7 @@ namespace AuthService.Infrastructure.Services;
 public class JwtService : IJwtService
 {
     private readonly IConfiguration _configuration;
+
     public JwtService(IConfiguration configuration)
     {
         _configuration = configuration;
@@ -29,10 +31,7 @@ public class JwtService : IJwtService
         if (string.IsNullOrWhiteSpace(keyString))
             throw new InvalidOperationException("Jwt:Key is not configured");
 
-        var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(keyString)
-        );
-
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
@@ -44,5 +43,11 @@ public class JwtService : IJwtService
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    public string GenerateRefreshToken()
+    {
+        var bytes = RandomNumberGenerator.GetBytes(64);
+        return Convert.ToBase64String(bytes);
     }
 }
