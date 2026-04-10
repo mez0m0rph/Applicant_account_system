@@ -20,10 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shared.Contracts\Shared.Contracts.csproj" />
-    <ProjectReference Include="..\Shared.Messaging\Shared.Messaging.csproj" />
-    <ProjectReference Include="..\AuthService.Application\AuthService.Application.csproj" />
-    <ProjectReference Include="..\AuthService.Infrastructure\AuthService.Infrastructure.csproj" />
+    <ProjectReference Include="../../../Shared.Contracts/Shared.Contracts.csproj" />
+    <ProjectReference Include="../../../Shared.Messaging/Shared.Messaging.csproj" />
+    <ProjectReference Include="../AuthService.Application/AuthService.Application.csproj" />
+    <ProjectReference Include="../AuthService.Infrastructure/AuthService.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,7 @@
-using AuthService.Data;
-using AuthService.Repositories;
-using AuthService.Services;
+using AuthService.Application.Interfaces;
+using AuthService.Infrastructure.Data;
+using AuthService.Infrastructure.Repositories;
+using AuthService.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -24,7 +25,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         var keyString = builder.Configuration["Jwt:Key"];
-        if (string.IsNullOrEmpty(keyString))
+        if (string.IsNullOrWhiteSpace(keyString))
             throw new Exception("Jwt:Key is not configured");
 
         options.TokenValidationParameters = new TokenValidationParameters

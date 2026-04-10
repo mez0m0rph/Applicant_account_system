@@ -1,4 +1,4 @@
-namespace AuthService.Models;
+namespace AuthService.Domain.Entities;
 
 public class User
 {

@@ -1,6 +1,6 @@
-using AuthService.Models;
+using AuthService.Domain.Entities;
 
-namespace AuthService.Repositories;
+namespace AuthService.Application.Interfaces;
 
 public interface IUserRepository
 {

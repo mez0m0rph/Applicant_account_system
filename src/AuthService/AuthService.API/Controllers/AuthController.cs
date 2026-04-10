@@ -1,8 +1,8 @@
-using AuthService.DTOs;
-using AuthService.Services;
+using AuthService.Application.DTOs;
+using AuthService.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AuthService.Controllers;
+namespace AuthService.API.Controllers;
 
 [ApiController]
 [Route("auth")]

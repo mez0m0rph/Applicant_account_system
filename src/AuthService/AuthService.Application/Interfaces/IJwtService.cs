@@ -3,9 +3,9 @@
 // возвращает строку JWT
 // User -> JwtService -> Token (string)
 
-using AuthService.Models;
+using AuthService.Domain.Entities;
 
-namespace AuthService.Services;
+namespace AuthService.Application.Interfaces;
 
 public interface IJwtService
 {

@@ -1,10 +1,12 @@
-using AuthService.Models;
+using AuthService.Application.Interfaces;
+using AuthService.Domain.Entities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace AuthService.Services;
+namespace AuthService.Infrastructure.Services;
 
 public class JwtService : IJwtService
 {

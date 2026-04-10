@@ -1,8 +1,8 @@
-using AuthService.DTOs;
-using AuthService.Models;
-using AuthService.Repositories;
+using AuthService.Application.DTOs;
+using AuthService.Domain.Entities;
+using AuthService.Application.Interfaces;
 
-namespace AuthService.Services;
+namespace AuthService.Infrastructure.Services;
 
 public class AuthServiceImpl : IAuthService
 {
