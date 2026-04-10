@@ -21,12 +21,16 @@ public class JwtService : IJwtService
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email), 
+            new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Role, user.Role)
         };
 
+        var keyString = _configuration["Jwt:Key"];
+        if (string.IsNullOrWhiteSpace(keyString))
+            throw new InvalidOperationException("Jwt:Key is not configured");
+
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_configuration["Jwt:Key"])
+            Encoding.UTF8.GetBytes(keyString)
         );
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
