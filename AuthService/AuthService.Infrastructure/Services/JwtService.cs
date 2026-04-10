@@ -22,7 +22,7 @@ public class JwtService : IJwtService
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role)
+            new Claim(ClaimTypes.Role, user.Role.ToString())
         };
 
         var keyString = _configuration["Jwt:Key"];

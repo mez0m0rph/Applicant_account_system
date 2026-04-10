@@ -1,5 +1,6 @@
 using AuthService.Application.DTOs;
 using AuthService.Domain.Entities;
+using AuthService.Domain.Enums;
 using AuthService.Application.Interfaces;
 
 namespace AuthService.Infrastructure.Services;
@@ -31,7 +32,7 @@ public class AuthServiceImpl : IAuthService
             Id = Guid.NewGuid(),
             Email = request.Email,
             PasswordHash = passwordHash,
-            Role = "Applicant"
+            Role = UserRole.Applicant
         };
 
         await _userRepository.AddAsync(user);
