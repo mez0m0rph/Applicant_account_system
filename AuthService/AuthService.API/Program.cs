@@ -1,3 +1,4 @@
+using AuthService.API.Middleware;
 using AuthService.Application.Interfaces;
 using AuthService.Infrastructure.Data;
 using AuthService.Infrastructure.Repositories;
@@ -18,7 +19,6 @@ builder.Services.AddScoped<IAuthService, AuthServiceImpl>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
 builder.Services.AddControllers();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -48,6 +48,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

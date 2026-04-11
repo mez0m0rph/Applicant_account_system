@@ -20,77 +20,56 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        try
-        {
-            await _authService.RegisterAsync(request);
-            return Ok("Пользователь зарегистрирован");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _authService.RegisterAsync(request);
+        return Ok("Пользователь зарегистрирован");
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        try
-        {
-            var result = await _authService.LoginAsync(request);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _authService.LoginAsync(request);
+        return Ok(result);
     }
 
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh(RefreshTokenRequest request)
     {
-        try
-        {
-            var result = await _authService.RefreshAsync(request);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var result = await _authService.RefreshAsync(request);
+        return Ok(result);
     }
 
     [HttpPost("logout")]
     public async Task<IActionResult> Logout(LogoutRequest request)
     {
-        try
-        {
-            await _authService.LogoutAsync(request);
-            return Ok("Выход выполнен");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _authService.LogoutAsync(request);
+        return Ok("Выход выполнен");
     }
 
     [Authorize]
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
     {
-        try
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrWhiteSpace(userIdClaim))
-                return Unauthorized("Пользователь не авторизован");
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrWhiteSpace(userIdClaim))
+            return Unauthorized("Пользователь не авторизован");
 
-            var userId = Guid.Parse(userIdClaim);
+        var userId = Guid.Parse(userIdClaim);
 
-            await _authService.ChangePasswordAsync(userId, request);
-            return Ok("Пароль успешно изменен");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _authService.ChangePasswordAsync(userId, request);
+        return Ok("Пароль успешно изменен");
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> Me()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrWhiteSpace(userIdClaim))
+            return Unauthorized("Пользователь не авторизован");
+
+        var userId = Guid.Parse(userIdClaim);
+        var result = await _authService.GetCurrentUserAsync(userId);
+
+        return Ok(result);
     }
 }
