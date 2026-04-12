@@ -1,4 +1,10 @@
 <Solution>
+  <Folder Name="/AdmissionService/">
+    <Project Path="AdmissionService/AdmissionService.API/AdmissionService.API.csproj" />
+    <Project Path="AdmissionService/AdmissionService.Application/AdmissionService.Application.csproj" />
+    <Project Path="AdmissionService/AdmissionService.Domain/AdmissionService.Domain.csproj" />
+    <Project Path="AdmissionService/AdmissionService.Infrastructure/AdmissionService.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/ApplicantService/">
     <Project Path="ApplicantService/ApplicantService.API/ApplicantService.API.csproj" />
     <Project Path="ApplicantService/ApplicantService.Application/ApplicantService.Application.csproj" />
@@ -17,7 +23,6 @@
     <Project Path="ProgramService/ProgramService.Domain/ProgramService.Domain.csproj" />
     <Project Path="ProgramService/ProgramService.Infrastructure/ProgramService.Infrastructure.csproj" />
   </Folder>
-  <Project Path="AdmissionService/AdmissionService.csproj" />
   <Project Path="DocumentService/DocumentService.csproj" />
   <Project Path="ManagerService/ManagerService.csproj" />
   <Project Path="NotificationService/NotificationService.csproj" />
