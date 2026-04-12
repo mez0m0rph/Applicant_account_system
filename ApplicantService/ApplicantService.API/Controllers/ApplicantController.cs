@@ -30,18 +30,5 @@ public class ApplicantController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
-
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
-    {
-        try
-        {
-            await _applicantService.LoginAsync(request);
-            return Ok("Профиль найден");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
+    
 }

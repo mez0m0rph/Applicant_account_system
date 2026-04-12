@@ -1,33 +1,21 @@
-using Microsoft.AspNetCore.Http;
 using ApplicantService.Application.DTOs;
 using ApplicantService.Domain.Entities;
 using ApplicantService.Application.Interfaces;
-using System.Security.Claims;
 
 namespace ApplicantService.Infrastructure.Services;
 
 public class ApplicantServiceImpl : IApplicantService
 {
     private readonly IApplicantRepository _repository;
-    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ApplicantServiceImpl(IApplicantRepository repository, IHttpContextAccessor httpContextAccessor)
+    public ApplicantServiceImpl(IApplicantRepository repository)
     {
         _repository = repository;
-        _httpContextAccessor = httpContextAccessor;
     }
 
-    private string GetUserIdFromToken()
-    {
-        var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId))
-            throw new Exception("Пользователь не авторизован");
-        return userId;
-    }
 
-    public async Task CreateAsync(CreateRequest request)
+    public async Task CreateAsync(Guid userId, CreateRequest request)
     {
-        var userId = Guid.Parse(GetUserIdFromToken());
         var existingProfile = await _repository.GetByUserIdAsync(userId);
 
         if (existingProfile != null)
@@ -45,12 +33,32 @@ public class ApplicantServiceImpl : IApplicantService
         await _repository.CreateAsync(applicant);
     }
 
-    public async Task LoginAsync(LoginRequest request)
+    public async Task<GetProfileResponse> GetMyProfileAsync(Guid userId)
     {
-        var userId = Guid.Parse(GetUserIdFromToken());
         var existingProfile = await _repository.GetByUserIdAsync(userId);
 
         if (existingProfile == null)
-            throw new Exception("Профиль не найден");
+            throw new Exception("профиль не был создан ранее");
+
+        return new GetProfileResponse
+        {
+            FullName = existingProfile.FullName,
+            Phone = existingProfile.Phone,
+            BirthDate = existingProfile.BirthDate
+        };
+    }
+
+    public async Task UpdateAsync(Guid userId, UpdateProfileRequest request)
+    {
+        var existingProfile = await _repository.GetByUserIdAsync(userId);
+
+        if (existingProfile == null)
+            throw new Exception("профиль не был создан ранее");
+
+        existingProfile.FullName = request.FullName;
+        existingProfile.Phone = request.Phone;
+        existingProfile.BirthDate = request.BirthDate;
+
+        await _repository.UpdateAsync(existingProfile);
     }
 }
