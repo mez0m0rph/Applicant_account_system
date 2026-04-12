@@ -1,9 +1,9 @@
-using ApplicantService.DTOs;
-using ApplicantService.Services;
+using ApplicantService.Application.DTOs;
+using ApplicantService.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ApplicantService.Controllers;
+namespace ApplicantService.API.Controllers;
 
 [ApiController]
 [Route("applicant")]

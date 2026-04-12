@@ -1,6 +1,6 @@
-using ApplicantService.DTOs;
+using ApplicantService.Application.DTOs;
 
-namespace ApplicantService.Services;
+namespace ApplicantService.Application.Interfaces;
 
 public interface IApplicantService
 {

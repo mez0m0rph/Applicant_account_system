@@ -1,4 +1,4 @@
-namespace ApplicantService.Models;
+namespace ApplicantService.Domain.Entities;
 
 public class Applicant
 {

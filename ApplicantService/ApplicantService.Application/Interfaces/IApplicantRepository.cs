@@ -1,6 +1,6 @@
-using ApplicantService.Models;
+using ApplicantService.Domain.Entities;
 
-namespace ApplicantService.Repositories;
+namespace ApplicantService.Application.Interfaces;
 
 public interface IApplicantRepository
 {

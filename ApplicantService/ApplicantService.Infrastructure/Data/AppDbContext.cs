@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using ApplicantService.Models;
+using ApplicantService.Domain.Entities;
 
-namespace ApplicantService.Data;
+namespace ApplicantService.Infrastructure.Data;
 
 public class AppDbContext : DbContext
 {

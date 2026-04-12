@@ -1,8 +1,9 @@
-using ApplicantService.Data;
-using ApplicantService.Models;
+using ApplicantService.Infrastructure.Data;
+using ApplicantService.Application.Interfaces;
+using ApplicantService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace ApplicantService.Repositories;
+namespace ApplicantService.Infrastructure.Repositories;
 
 public class ApplicantRepository : IApplicantRepository
 {

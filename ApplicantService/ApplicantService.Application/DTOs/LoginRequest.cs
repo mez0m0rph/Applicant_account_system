@@ -1,4 +1,4 @@
-namespace ApplicantService.DTOs;
+namespace ApplicantService.Application.DTOs;
 
 public class LoginRequest
 {

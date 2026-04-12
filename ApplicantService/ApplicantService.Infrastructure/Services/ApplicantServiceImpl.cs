@@ -1,9 +1,10 @@
-using ApplicantService.DTOs;
-using ApplicantService.Models;
-using ApplicantService.Repositories;
+using Microsoft.AspNetCore.Http;
+using ApplicantService.Application.DTOs;
+using ApplicantService.Domain.Entities;
+using ApplicantService.Application.Interfaces;
 using System.Security.Claims;
 
-namespace ApplicantService.Services;
+namespace ApplicantService.Infrastructure.Services;
 
 public class ApplicantServiceImpl : IApplicantService
 {
@@ -18,7 +19,7 @@ public class ApplicantServiceImpl : IApplicantService
 
     private string GetUserIdFromToken()
     {
-        var userId = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
             throw new Exception("Пользователь не авторизован");
         return userId;
