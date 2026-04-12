@@ -31,6 +31,18 @@ public class AdmissionServiceImpl : IAdmissionService
         };
 
         await _repository.CreateAdmissionAsync(admission);
+
+        var admissionPrograms = request.Programs
+            .Select(p => new AdmissionProgram
+            {
+                Id = Guid.NewGuid(),
+                AdmissionId = admission.Id,
+                ProgramId = p.ProgramId,
+                Priority = p.Priority
+            })
+            .ToList();
+
+        await _repository.CreateAdmissionProgramsAsync(admissionPrograms);
     }
 
     public async Task<AdmissionResponse> GetMyAdmissionAsync(Guid applicantUserId)
@@ -40,6 +52,8 @@ public class AdmissionServiceImpl : IAdmissionService
         if (admission == null)
             throw new Exception("заявление не было создано");
 
+        var programs = await _repository.GetProgramsByAdmissionIdAsync(admission.Id);
+
         return new AdmissionResponse
         {
             Id = admission.Id,
@@ -48,7 +62,13 @@ public class AdmissionServiceImpl : IAdmissionService
             AssignedManagerUserId = admission.AssignedManagerUserId,
             CreatedAt = admission.CreatedAt,
             UpdatedAt = admission.UpdatedAt,
-            Programs = new List<AdmissionProgramDto>()
+            Programs = programs
+                .Select(p => new AdmissionProgramDto
+                {
+                    ProgramId = p.ProgramId,
+                    Priority = p.Priority
+                })
+                .ToList()
         };
     }
 }

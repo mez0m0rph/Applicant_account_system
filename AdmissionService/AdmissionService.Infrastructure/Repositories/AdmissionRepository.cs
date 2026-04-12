@@ -23,4 +23,18 @@ public class AdmissionRepository : IAdmissionRepository
         await _context.Admissions.AddAsync(admission);
         await _context.SaveChangesAsync();
     }
+
+    public async Task CreateAdmissionProgramsAsync(List<AdmissionProgram> programs)
+    {
+        await _context.AdmissionPrograms.AddRangeAsync(programs);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<AdmissionProgram>> GetProgramsByAdmissionIdAsync(Guid admissionId)
+    {
+        return await _context.AdmissionPrograms
+            .Where(p => p.AdmissionId == admissionId)
+            .OrderBy(p => p.Priority)
+            .ToListAsync();
+    }
 }
