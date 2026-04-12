@@ -1,3 +1,4 @@
+using ApplicantService.API.Middleware;
 using ApplicantService.Application.Interfaces;
 using ApplicantService.Infrastructure.Data;
 using ApplicantService.Infrastructure.Repositories;
@@ -14,7 +15,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IApplicantRepository, ApplicantRepository>();
 builder.Services.AddScoped<IApplicantService, ApplicantServiceImpl>();
-builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -46,6 +46,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
