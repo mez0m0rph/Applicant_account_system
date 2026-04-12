@@ -46,18 +46,21 @@ public class ProgramsController : ControllerBase
         return Ok(programs);
     }
 
+    [HttpGet("search")]
+    public async Task<IActionResult> Search(
+        [FromQuery] string? faculty, 
+        [FromQuery]string? degree,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var programs = await _service.SearchAsync(faculty, degree, page, pageSize);
+        return Ok(programs);
+    }
+
     [HttpPost("sync")]
     public async Task<IActionResult> Sync()
     {
         await _service.SyncProgramsAsync();
         return Ok("Sync completed");
     }
-
-    [HttpGet("search")]
-    public async Task<IActionResult> Search([FromQuery] string? faculty, [FromQuery]string? degree)
-    {
-        var programs = await _service.SearchAsync(faculty, degree);
-        return Ok(programs);
-    }
-
 }

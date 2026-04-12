@@ -13,7 +13,7 @@ public class StudyProgramService : IStudyProgramService
         _repository = repository;
     }
 
-    private ProgramDto MaptoDto(StudyProgram program)
+    private ProgramDto MapToDto(StudyProgram program)
     {
         return new ProgramDto
         {
@@ -32,13 +32,13 @@ public class StudyProgramService : IStudyProgramService
     public async Task<List<ProgramDto>> GetAllAsync()
     {
         var programs = await _repository.GetAllAsync();
-        return programs.Select(MaptoDto).ToList();
+        return programs.Select(MapToDto).ToList();
     }
 
     public async Task<ProgramDto?> GetByIdAsync(Guid id)
     {
         var program = await _repository.GetByIdAsync(id);
-        return program == null ? null : MaptoDto(program);
+        return program == null ? null : MapToDto(program);
     }
 
     public async Task<List<ProgramDto>> GetByFacultyAsync(string faculty)
@@ -46,7 +46,7 @@ public class StudyProgramService : IStudyProgramService
         var programs = await _repository.GetAllAsync();
         return programs
             .Where(p => p.Faculty == faculty)
-            .Select(MaptoDto)
+            .Select(MapToDto)
             .ToList();
     }
 
@@ -55,12 +55,19 @@ public class StudyProgramService : IStudyProgramService
         var programs = await _repository.GetAllAsync();
         return programs
             .Where(p => p.Degree == degree)
-            .Select(MaptoDto)
+            .Select(MapToDto)
             .ToList();
     }
 
-    public async Task<List<ProgramDto>> SearchAsync(string? faculty, string? degree)
+    public async Task<List<ProgramDto>> SearchAsync(string? faculty, string? degree, int page, int pageSize)
     {
+        if (page < 1)
+            page = 1;
+
+        if (pageSize < 1) 
+            pageSize = 10;
+
+
         var programs = await _repository.GetAllAsync();
 
         if (!string.IsNullOrWhiteSpace(faculty))
@@ -78,7 +85,9 @@ public class StudyProgramService : IStudyProgramService
         }
 
         return programs
-            .Select(MaptoDto)
+            .Skip((page - 1) * pageSize)
+            .TakeLast(pageSize)
+            .Select(MapToDto)
             .ToList();
     }
 
