@@ -1,3 +1,4 @@
+using AdmissionService.API.Middleware;
 using AdmissionService.Application.Interfaces;
 using AdmissionService.Infrastructure.Data;
 using AdmissionService.Infrastructure.Repositories;
@@ -45,6 +46,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
