@@ -6,7 +6,7 @@ public class Admission
 {
     public Guid Id { get; set; }
     public Guid ApplicantUserId { get; set; }
-    public AdmissionStatus status { get; set; }
+    public AdmissionStatus Status { get; set; }
     public Guid? AssignedManagerUserId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
