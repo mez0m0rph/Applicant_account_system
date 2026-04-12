@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using ProgramService.Services;
+using ProgramService.Application.Interfaces;
 
-namespace ProgramService.Controllers;
+namespace ProgramService.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -20,18 +20,17 @@ public class ProgramsController : ControllerBase
         return Ok(programs);
     }
 
-    [HttpGet]
+    [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var program = await _service.GetByIdAsync(id);
 
-        if (program == null)
-        {
+        if (program == null) 
             return NotFound();
-        }
 
         return Ok(program);
     }
+
 
     [HttpGet("faculty/{faculty}")]
     public async Task<IActionResult> GetByFaculty(string faculty)
@@ -44,7 +43,7 @@ public class ProgramsController : ControllerBase
     public async Task<IActionResult> GetByDegree(string degree)
     {
         var programs = await _service.GetByDegreeAsync(degree);
-        return Ok(degree);
+        return Ok(programs);
     }
 
     [HttpPost("sync")]
@@ -52,6 +51,13 @@ public class ProgramsController : ControllerBase
     {
         await _service.SyncProgramsAsync();
         return Ok("Sync completed");
+    }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> Search([FromQuery] string? faculty, [FromQuery]string? degree)
+    {
+        var programs = await _service.SearchAsync(faculty, degree);
+        return Ok(programs);
     }
 
 }

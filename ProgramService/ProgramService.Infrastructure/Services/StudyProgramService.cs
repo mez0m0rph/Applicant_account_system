@@ -1,8 +1,8 @@
-using ProgramService.DTOs;
-using ProgramService.Models;
-using ProgramService.Repositories;
+using ProgramService.Application.DTOs;
+using ProgramService.Domain.Entities;
+using ProgramService.Application.Interfaces;
 
-namespace ProgramService.Services;
+namespace ProgramService.Infrastructure.Services;
 
 public class StudyProgramService : IStudyProgramService
 {
@@ -55,6 +55,29 @@ public class StudyProgramService : IStudyProgramService
         var programs = await _repository.GetAllAsync();
         return programs
             .Where(p => p.Degree == degree)
+            .Select(MaptoDto)
+            .ToList();
+    }
+
+    public async Task<List<ProgramDto>> SearchAsync(string? faculty, string? degree)
+    {
+        var programs = await _repository.GetAllAsync();
+
+        if (!string.IsNullOrWhiteSpace(faculty))
+        {
+            programs = programs
+                .Where(p => p.Faculty == faculty)
+                .ToList();
+        }
+
+        if (!string.IsNullOrWhiteSpace(degree))
+        {
+            programs = programs
+                .Where(p => p.Degree == degree)
+                .ToList();
+        }
+
+        return programs
             .Select(MaptoDto)
             .ToList();
     }

@@ -1,8 +1,6 @@
-using ProgramService.Repositories;
-using ProgramService.Models;
-using ProgramService.DTOs;
+using ProgramService.Application.DTOs;
 
-namespace ProgramService.Services;
+namespace ProgramService.Application.Interfaces;
 
 public interface IStudyProgramService
 {
@@ -11,4 +9,5 @@ public interface IStudyProgramService
     Task SyncProgramsAsync();
     Task<List<ProgramDto>> GetByFacultyAsync(string faculty);
     Task<List<ProgramDto>> GetByDegreeAsync(string degree);
+    Task<List<ProgramDto>> SearchAsync(string? faculty, string? degree);
 }

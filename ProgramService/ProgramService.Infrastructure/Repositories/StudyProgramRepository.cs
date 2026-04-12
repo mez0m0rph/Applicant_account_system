@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using ProgramService.Data;
-using ProgramService.Models;
+using ProgramService.Infrastructure.Data;
+using ProgramService.Application.Interfaces;
+using ProgramService.Domain.Entities;
 
-namespace ProgramService.Repositories;
+namespace ProgramService.Infrastructure.Repositories;
 
 public class StudyProgramRepository : IStudyProgramRepository
 {

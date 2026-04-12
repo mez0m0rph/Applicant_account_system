@@ -1,7 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-using ProgramService.Models;
+using ProgramService.Domain.Entities;
 
-namespace ProgramService.Repositories;
+namespace ProgramService.Application.Interfaces;
 
 public interface IStudyProgramRepository
 {
