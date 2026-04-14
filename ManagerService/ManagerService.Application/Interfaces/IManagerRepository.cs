@@ -5,6 +5,6 @@ namespace ManagerService.Application.Interfaces;
 public interface IManagerRepository
 {
     Task<List<Manager>> GetAllAsync();
-    Task<Manager?> GetManagerByIdAsync(Guid id);
-    Task CreateManagerAsync(Manager manager);
+    Task<Manager?> GetByIdAsync(Guid id);
+    Task CreateAsync(Manager manager);
 }
