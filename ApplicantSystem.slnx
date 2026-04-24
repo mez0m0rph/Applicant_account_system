@@ -17,6 +17,12 @@
     <Project Path="AuthService/AuthService.Domain/AuthService.Domain.csproj" />
     <Project Path="AuthService/AuthService.Infrastructure/AuthService.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/DocumentService/">
+    <Project Path="DocumentService/DocumentService.API/DocumentService.API.csproj" />
+    <Project Path="DocumentService/DocumentService.Application/DocumentService.Application.csproj" />
+    <Project Path="DocumentService/DocumentService.Domain/DocumentService.Domain.csproj" />
+    <Project Path="DocumentService/DocumentService.Infrastructure/DocumentService.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/ManagerService/">
     <Project Path="ManagerService/ManagerService.API/ManagerService.API.csproj" />
     <Project Path="ManagerService/ManagerService.Application/ManagerService.Application.csproj" />
@@ -29,7 +35,6 @@
     <Project Path="ProgramService/ProgramService.Domain/ProgramService.Domain.csproj" />
     <Project Path="ProgramService/ProgramService.Infrastructure/ProgramService.Infrastructure.csproj" />
   </Folder>
-  <Project Path="DocumentService/DocumentService.csproj" />
   <Project Path="NotificationService/NotificationService.csproj" />
   <Project Path="Shared.Contracts/Shared.Contracts.csproj" />
   <Project Path="Shared.Messaging/Shared.Messaging.csproj" />
