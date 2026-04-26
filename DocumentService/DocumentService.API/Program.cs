@@ -1,3 +1,4 @@
+using DocumentService.API.Middleware;
 using DocumentService.Application.Interfaces;
 using DocumentService.Infrastructure.Data;
 using DocumentService.Infrastructure.Repositories;
@@ -45,6 +46,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
