@@ -29,13 +29,18 @@
     <Project Path="ManagerService/ManagerService.Domain/ManagerService.Domain.csproj" />
     <Project Path="ManagerService/ManagerService.Infrastructure/ManagerService.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/NotificationService/">
+    <Project Path="NotificationService/NotificationService.API/NotificationService.API.csproj" />
+    <Project Path="NotificationService/NotificationService.Application/NotificationService.Application.csproj" />
+    <Project Path="NotificationService/NotificationService.Domain/NotificationService.Domain.csproj" />
+    <Project Path="NotificationService/NotificationService.Infrastructure/NotificationService.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/ProgramService/">
     <Project Path="ProgramService/ProgramService.API/ProgramService.API.csproj" />
     <Project Path="ProgramService/ProgramService.Application/ProgramService.Application.csproj" />
     <Project Path="ProgramService/ProgramService.Domain/ProgramService.Domain.csproj" />
     <Project Path="ProgramService/ProgramService.Infrastructure/ProgramService.Infrastructure.csproj" />
   </Folder>
-  <Project Path="NotificationService/NotificationService.csproj" />
   <Project Path="Shared.Contracts/Shared.Contracts.csproj" />
   <Project Path="Shared.Messaging/Shared.Messaging.csproj" />
   <Project Path="WebApp/WebApp.csproj" />
