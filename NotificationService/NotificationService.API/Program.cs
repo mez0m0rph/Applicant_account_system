@@ -4,6 +4,7 @@ using NotificationService.Application.Interfaces;
 using NotificationService.Infrastructure.Data;
 using NotificationService.Infrastructure.Repositories;
 using NotificationService.Infrastructure.Services;
+using Shared.Messaging.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,9 +14,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, NotificationServiceImpl>();
 
+builder.Services.AddRabbitMqMessaging(builder.Configuration);
+builder.Services.AddHostedService<RabbitMqNotificationConsumer>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 

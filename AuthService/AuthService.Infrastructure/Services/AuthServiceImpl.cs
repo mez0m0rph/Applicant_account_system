@@ -2,6 +2,8 @@ using AuthService.Application.DTOs;
 using AuthService.Application.Interfaces;
 using AuthService.Domain.Entities;
 using AuthService.Domain.Enums;
+using Shared.Contracts.Events;
+using Shared.Messaging.Interfaces;
 
 namespace AuthService.Infrastructure.Services;
 
@@ -10,20 +12,24 @@ public class AuthServiceImpl : IAuthService
     private readonly IUserRepository _userRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IJwtService _jwtService;
+    private readonly IMessagePublisher _messagePublisher;
 
     public AuthServiceImpl(
         IUserRepository userRepository,
         IRefreshTokenRepository refreshTokenRepository,
-        IJwtService jwtService)
+        IJwtService jwtService,
+        IMessagePublisher messagePublisher)
     {
         _userRepository = userRepository;
         _refreshTokenRepository = refreshTokenRepository;
         _jwtService = jwtService;
+        _messagePublisher = messagePublisher;
     }
 
     public async Task RegisterAsync(RegisterRequest request)
     {
         var existingUser = await _userRepository.GetByEmailAsync(request.Email);
+
         if (existingUser != null)
             throw new Exception("Пользователь с таким email уже существует");
 
@@ -38,15 +44,25 @@ public class AuthServiceImpl : IAuthService
         };
 
         await _userRepository.AddAsync(user);
+
+        await _messagePublisher.PublishAsync(new NotificationRequestedEvent
+        {
+            UserId = user.Id,
+            Email = user.Email,
+            Subject = "Регистрация завершена",
+            Message = "Ваш аккаунт успешно создан."
+        });
     }
 
     public async Task<AuthTokensResponse> LoginAsync(LoginRequest request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
+
         if (user == null)
             throw new Exception("Такой пользователь не найден");
 
         var isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+
         if (!isPasswordValid)
             throw new Exception("Неверный пароль");
 
@@ -89,10 +105,12 @@ public class AuthServiceImpl : IAuthService
     public async Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request)
     {
         var user = await _userRepository.GetByIdAsync(userId);
+
         if (user == null)
             throw new Exception("Пользователь не найден");
 
         var isPasswordValid = BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash);
+
         if (!isPasswordValid)
             throw new Exception("Текущий пароль неверный");
 
@@ -103,6 +121,7 @@ public class AuthServiceImpl : IAuthService
     public async Task<CurrentUserResponse> GetCurrentUserAsync(Guid userId)
     {
         var user = await _userRepository.GetByIdAsync(userId);
+
         if (user == null)
             throw new Exception("Пользователь не найден");
 
