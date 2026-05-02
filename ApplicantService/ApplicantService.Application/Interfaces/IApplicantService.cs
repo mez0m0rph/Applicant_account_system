@@ -1,5 +1,4 @@
 using ApplicantService.Application.DTOs;
-using ApplicantService.Domain.Entities;
 
 namespace ApplicantService.Application.Interfaces;
 

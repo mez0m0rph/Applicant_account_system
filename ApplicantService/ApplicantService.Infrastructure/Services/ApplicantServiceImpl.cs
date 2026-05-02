@@ -1,6 +1,6 @@
 using ApplicantService.Application.DTOs;
-using ApplicantService.Domain.Entities;
 using ApplicantService.Application.Interfaces;
+using ApplicantService.Domain.Entities;
 
 namespace ApplicantService.Infrastructure.Services;
 
@@ -12,7 +12,6 @@ public class ApplicantServiceImpl : IApplicantService
     {
         _repository = repository;
     }
-
 
     public async Task CreateAsync(Guid userId, CreateRequest request)
     {
@@ -38,7 +37,7 @@ public class ApplicantServiceImpl : IApplicantService
         var existingProfile = await _repository.GetByUserIdAsync(userId);
 
         if (existingProfile == null)
-            throw new Exception("профиль не был создан ранее");
+            throw new Exception("Профиль не был создан ранее");
 
         return new GetProfileResponse
         {
@@ -53,7 +52,7 @@ public class ApplicantServiceImpl : IApplicantService
         var existingProfile = await _repository.GetByUserIdAsync(userId);
 
         if (existingProfile == null)
-            throw new Exception("профиль не был создан ранее");
+            throw new Exception("Профиль не был создан ранее");
 
         existingProfile.FullName = request.FullName;
         existingProfile.Phone = request.Phone;

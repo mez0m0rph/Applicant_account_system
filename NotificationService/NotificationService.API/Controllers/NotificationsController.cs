@@ -1,6 +1,6 @@
-using NotificationService.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NotificationService.Application.DTOs;
 using NotificationService.Application.Interfaces;
 
 namespace NotificationService.API.Controllers;
@@ -11,6 +11,7 @@ namespace NotificationService.API.Controllers;
 public class NotificationsController : ControllerBase
 {
     private readonly INotificationService _service;
+
     public NotificationsController(INotificationService service)
     {
         _service = service;
@@ -20,7 +21,7 @@ public class NotificationsController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateNotificationRequest request)
     {
         await _service.CreateAsync(request);
-        return Ok("уведомление создано");
+        return Ok("Уведомление создано");
     }
 
     [HttpGet]
@@ -34,7 +35,8 @@ public class NotificationsController : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var notification = await _service.GetByIdAsync(id);
-        if (notification == null) 
+
+        if (notification == null)
             return NotFound();
 
         return Ok(notification);
@@ -44,6 +46,6 @@ public class NotificationsController : ControllerBase
     public async Task<IActionResult> MarkAsSent(Guid id)
     {
         await _service.MarkAsSentAsync(id);
-        return Ok("уведомление помечено как отправленное");
+        return Ok("Уведомление помечено как отправленное");
     }
 }

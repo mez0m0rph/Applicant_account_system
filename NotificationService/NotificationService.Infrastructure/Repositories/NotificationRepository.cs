@@ -7,11 +7,13 @@ namespace NotificationService.Infrastructure.Repositories;
 
 public class NotificationRepository : INotificationRepository
 {
-    private readonly AppDbContext _context; 
+    private readonly AppDbContext _context;
+
     public NotificationRepository(AppDbContext context)
     {
         _context = context;
     }
+
     public async Task<List<Notification>> GetAllAsync()
     {
         return await _context.Notifications.ToListAsync();

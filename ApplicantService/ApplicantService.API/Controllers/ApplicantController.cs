@@ -40,7 +40,7 @@ public class ApplicantController : ControllerBase
     public async Task<IActionResult> GetMe()
     {
         var userId = GetUserId();
-        var profile = _applicantService.GetMyProfileAsync(userId);
+        var profile = await _applicantService.GetMyProfileAsync(userId);
         return Ok(profile);
     }
 
@@ -51,5 +51,4 @@ public class ApplicantController : ControllerBase
         await _applicantService.UpdateAsync(userId, request);
         return Ok("Профиль обновлен");
     }
-    
 }

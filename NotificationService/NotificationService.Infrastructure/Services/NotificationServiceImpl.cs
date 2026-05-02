@@ -36,7 +36,7 @@ public class NotificationServiceImpl : INotificationService
         var notification = await _repository.GetByIdAsync(id);
 
         if (notification == null)
-            throw new Exception("Такого уведомления не существует");
+            return null;
 
         return new NotificationResponse
         {
