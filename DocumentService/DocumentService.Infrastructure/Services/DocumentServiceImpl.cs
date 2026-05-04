@@ -1,16 +1,22 @@
 using DocumentService.Application.DTOs;
 using DocumentService.Application.Interfaces;
 using DocumentService.Domain.Entities;
+using Shared.Contracts.Events;
+using Shared.Messaging.Interfaces;
 
 namespace DocumentService.Infrastructure.Services;
 
 public class DocumentServiceImpl : IDocumentService
 {
     private readonly IDocumentRepository _repository;
+    private readonly IMessagePublisher _messagePublisher;
 
-    public DocumentServiceImpl(IDocumentRepository repository)
+    public DocumentServiceImpl(
+        IDocumentRepository repository,
+        IMessagePublisher messagePublisher)
     {
         _repository = repository;
+        _messagePublisher = messagePublisher;
     }
 
     public async Task UploadAsync(Guid applicantUserId, UploadDocumentRequest request)
@@ -41,6 +47,14 @@ public class DocumentServiceImpl : IDocumentService
         };
 
         await _repository.AddDocumentAsync(document);
+
+        await _messagePublisher.PublishAsync(new NotificationRequestedEvent
+        {
+            UserId = applicantUserId,
+            Email = "applicant@example.com",
+            Subject = "Документ загружен",
+            Message = $"Документ {request.FileName} успешно загружен."
+        });
     }
 
     public async Task<List<DocumentResponse>> GetMyDocumentsAsync(Guid applicantUserId)
