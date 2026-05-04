@@ -7,10 +7,14 @@ namespace NotificationService.Infrastructure.Services;
 public class NotificationServiceImpl : INotificationService
 {
     private readonly INotificationRepository _repository;
+    private readonly IEmailSender _emailSender;
 
-    public NotificationServiceImpl(INotificationRepository repository)
+    public NotificationServiceImpl(
+        INotificationRepository repository,
+        IEmailSender emailSender)
     {
         _repository = repository;
+        _emailSender = emailSender;
     }
 
     public async Task<List<NotificationResponse>> GetAllAsync()
@@ -68,6 +72,13 @@ public class NotificationServiceImpl : INotificationService
         };
 
         await _repository.CreateAsync(notification);
+
+        await _emailSender.SendAsync(notification.Email, notification.Subject, notification.Message);
+
+        notification.IsSent = true;
+        notification.SentAt = DateTime.UtcNow;
+
+        await _repository.UpdateAsync(notification);
     }
 
     public async Task MarkAsSentAsync(Guid id)

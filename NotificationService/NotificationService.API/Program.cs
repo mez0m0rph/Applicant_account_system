@@ -11,8 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.Configure<MailOptions>(builder.Configuration.GetSection("Mail"));
+
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, NotificationServiceImpl>();
+builder.Services.AddScoped<IEmailSender, MailDevEmailSender>();
 
 builder.Services.AddRabbitMqMessaging(builder.Configuration);
 builder.Services.AddHostedService<RabbitMqNotificationConsumer>();
