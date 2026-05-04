@@ -1,8 +1,23 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Главная";
+    var isAuthenticated = ViewBag.IsAuthenticated as bool? ?? false;
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Applicant Account System</h1>
+    <p>Единая система для абитуриентов, менеджеров и подачи заявлений.</p>
+
+    @if (!isAuthenticated)
+    {
+        <div class="mt-4">
+            <a class="btn btn-primary me-2" asp-controller="Account" asp-action="Login">Войти</a>
+            <a class="btn btn-success" asp-controller="Account" asp-action="Register">Регистрация</a>
+        </div>
+    }
+    else
+    {
+        <div class="mt-4">
+            <p>Вы авторизованы.</p>
+        </div>
+    }
 </div>
