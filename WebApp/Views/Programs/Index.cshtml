@@ -1,0 +1,29 @@
+@model List<WebApp.Models.Program.StudyProgramViewModel>
+@{
+    ViewData["Title"] = "Программы";
+}
+<h2>Образовательные программы</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Факультет</th>
+            <th>Степень</th>
+            <th>Бюджет</th>
+            <th>Платные</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Title</td>
+            <td>@item.Faculty</td>
+            <td>@item.Degree</td>
+            <td>@item.BudgetPlaces</td>
+            <td>@item.PaidPlaces</td>
+        </tr>
+    }
+    </tbody>
+</table>

@@ -1,0 +1,32 @@
+@model List<WebApp.Models.Document.DocumentViewModel>
+@{
+    ViewData["Title"] = "Мои документы";
+}
+<h2>Мои документы</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Тип</th>
+            <th>Файл</th>
+            <th>Путь</th>
+            <th>Дата</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var doc in Model)
+    {
+        <tr>
+            <td>@doc.Type</td>
+            <td>@doc.File.FileName</td>
+            <td>@doc.File.StoragePath</td>
+            <td>@doc.CreatedAt</td>
+        </tr>
+    }
+    </tbody>
+</table>

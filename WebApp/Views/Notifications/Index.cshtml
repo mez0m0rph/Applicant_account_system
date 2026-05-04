@@ -1,0 +1,29 @@
+@model List<WebApp.Models.Notification.NotificationViewModel>
+@{
+    ViewData["Title"] = "Уведомления";
+}
+<h2>Уведомления</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Тема</th>
+            <th>Сообщение</th>
+            <th>Статус</th>
+            <th>Дата</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var n in Model)
+    {
+        <tr>
+            <td>@n.Email</td>
+            <td>@n.Subject</td>
+            <td>@n.Message</td>
+            <td>@(n.IsSent ? "Отправлено" : "Не отправлено")</td>
+            <td>@n.CreatedAt</td>
+        </tr>
+    }
+    </tbody>
+</table>

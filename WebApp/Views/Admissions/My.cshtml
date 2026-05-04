@@ -1,0 +1,33 @@
+@model WebApp.Models.Admission.AdmissionViewModel?
+@{
+    ViewData["Title"] = "Мое заявление";
+}
+<h2>Мое заявление</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
+@if (Model == null)
+{
+    <p>Заявление пока не создано.</p>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-3">Статус</dt>
+        <dd class="col-sm-9">@Model.Status</dd>
+
+        <dt class="col-sm-3">Создано</dt>
+        <dd class="col-sm-9">@Model.CreatedAt</dd>
+    </dl>
+
+    <h4>Программы</h4>
+    <ul>
+        @foreach (var p in Model.Programs)
+        {
+            <li>@p.ProgramId — приоритет @p.Priority</li>
+        }
+    </ul>
+}

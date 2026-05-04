@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - WebApp</title>
+    <title>@ViewData["Title"] - ApplicantSystem</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/WebApp.styles.css" asp-append-version="true" />
@@ -15,18 +15,16 @@
                 <a class="navbar-brand" asp-controller="Home" asp-action="Index">ApplicantSystem</a>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Главная</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Вход</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Регистрация</a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Главная</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Вход</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Регистрация</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Applicant" asp-action="Profile">Профиль</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Programs" asp-action="Index">Программы</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Admissions" asp-action="My">Заявление</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Admissions" asp-action="Create">Подать заявление</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Documents" asp-action="My">Документы</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Documents" asp-action="Upload">Загрузить документ</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Notifications" asp-action="Index">Уведомления</a></li>
                     </ul>
 
                     <form asp-controller="Account" asp-action="Logout" method="post" class="d-flex">

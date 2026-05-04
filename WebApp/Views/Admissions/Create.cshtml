@@ -1,0 +1,23 @@
+@model WebApp.Models.Admission.CreateAdmissionViewModel
+@{
+    ViewData["Title"] = "Создать заявление";
+}
+<h2>Создать заявление</h2>
+
+<form asp-action="Create" method="post">
+    @for (int i = 0; i < Model.Programs.Count; i++)
+    {
+        <div class="border rounded p-3 mb-3">
+            <div class="mb-2">
+                <label class="form-label">ProgramId</label>
+                <input asp-for="Programs[i].ProgramId" class="form-control" />
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Приоритет</label>
+                <input asp-for="Programs[i].Priority" class="form-control" />
+            </div>
+        </div>
+    }
+
+    <button type="submit" class="btn btn-primary">Отправить заявление</button>
+</form>

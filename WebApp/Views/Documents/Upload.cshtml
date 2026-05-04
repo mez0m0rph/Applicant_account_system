@@ -1,0 +1,46 @@
+@model WebApp.Models.Document.UploadDocumentViewModel
+@{
+    ViewData["Title"] = "Загрузить документ";
+}
+<h2>Загрузить документ</h2>
+
+<form asp-action="Upload" method="post">
+    <div class="mb-3">
+        <label class="form-label">Type (0 = Passport, 1 = EducationDocument)</label>
+        <input asp-for="Type" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">FileName</label>
+        <input asp-for="FileName" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">ContentType</label>
+        <input asp-for="ContentType" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">StoragePath</label>
+        <input asp-for="StoragePath" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">SeriesNumber</label>
+        <input asp-for="SeriesNumber" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">IssuedBy</label>
+        <input asp-for="IssuedBy" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">BirthPlace</label>
+        <input asp-for="BirthPlace" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">IssueDate</label>
+        <input asp-for="IssueDate" type="date" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">EducationDocumentName</label>
+        <input asp-for="EducationDocumentName" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Загрузить</button>
+</form>
