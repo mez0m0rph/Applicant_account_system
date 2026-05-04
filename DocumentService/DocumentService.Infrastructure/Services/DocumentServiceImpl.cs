@@ -10,23 +10,30 @@ public class DocumentServiceImpl : IDocumentService
 {
     private readonly IDocumentRepository _repository;
     private readonly IMessagePublisher _messagePublisher;
+    private readonly IFileStorageService _fileStorageService;
 
     public DocumentServiceImpl(
         IDocumentRepository repository,
-        IMessagePublisher messagePublisher)
+        IMessagePublisher messagePublisher,
+        IFileStorageService fileStorageService)
     {
         _repository = repository;
         _messagePublisher = messagePublisher;
+        _fileStorageService = fileStorageService;
     }
 
     public async Task UploadAsync(Guid applicantUserId, UploadDocumentRequest request)
     {
+        var storagePath = await _fileStorageService.UploadAsync(
+            request.FileName,
+            $"Document content for {request.FileName}");
+
         var file = new StoredFile
         {
             Id = Guid.NewGuid(),
             FileName = request.FileName,
             ContentType = request.ContentType,
-            StoragePath = request.StoragePath,
+            StoragePath = storagePath,
             UploadedAt = DateTime.UtcNow
         };
 

@@ -14,8 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.Configure<MinioOptions>(builder.Configuration.GetSection("MinIO"));
+
 builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IDocumentService, DocumentServiceImpl>();
+builder.Services.AddScoped<IFileStorageService, MinioFileStorageService>();
 
 builder.Services.AddRabbitMqMessaging(builder.Configuration);
 
