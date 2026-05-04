@@ -2,15 +2,22 @@ using AdmissionService.Application.DTOs;
 using AdmissionService.Application.Interfaces;
 using AdmissionService.Domain.Entities;
 using AdmissionService.Domain.Enums;
+using Shared.Contracts.Events;
+using Shared.Messaging.Interfaces;
 
 namespace AdmissionService.Infrastructure.Services;
 
 public class AdmissionServiceImpl : IAdmissionService
 {
     private readonly IAdmissionRepository _repository;
-    public AdmissionServiceImpl(IAdmissionRepository repository)
+    private readonly IMessagePublisher _messagePublisher;
+
+    public AdmissionServiceImpl(
+        IAdmissionRepository repository,
+        IMessagePublisher messagePublisher)
     {
         _repository = repository;
+        _messagePublisher = messagePublisher;
     }
 
     public async Task CreateAdmissionAsync(Guid applicantUserId, CreateAdmissionRequest request)
@@ -18,7 +25,7 @@ public class AdmissionServiceImpl : IAdmissionService
         var existingAdmission = await _repository.GetByApplicantUserIdAsync(applicantUserId);
 
         if (existingAdmission != null)
-            throw new Exception("заявление уже подано");
+            throw new Exception("Заявление уже подано");
 
         var admission = new Admission
         {
@@ -43,6 +50,14 @@ public class AdmissionServiceImpl : IAdmissionService
             .ToList();
 
         await _repository.CreateAdmissionProgramsAsync(admissionPrograms);
+
+        await _messagePublisher.PublishAsync(new NotificationRequestedEvent
+        {
+            UserId = applicantUserId,
+            Email = "applicant@example.com",
+            Subject = "Заявление создано",
+            Message = "Ваше заявление успешно создано."
+        });
     }
 
     public async Task<AdmissionResponse> GetMyAdmissionAsync(Guid applicantUserId)
@@ -50,7 +65,7 @@ public class AdmissionServiceImpl : IAdmissionService
         var admission = await _repository.GetByApplicantUserIdAsync(applicantUserId);
 
         if (admission == null)
-            throw new Exception("заявление не было создано");
+            throw new Exception("Заявление не было создано");
 
         var programs = await _repository.GetProgramsByAdmissionIdAsync(admission.Id);
 
