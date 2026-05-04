@@ -5,6 +5,6 @@ namespace WebApp.Services;
 
 public interface IDocumentApiService
 {
-    Task<ApiResult<string>> UploadAsync(UploadDocumentViewModel model);
+    Task<ApiResult<string>> UploadAsync(UploadDocumentApiModel model);
     Task<ApiResult<List<DocumentViewModel>>> GetMyAsync();
 }

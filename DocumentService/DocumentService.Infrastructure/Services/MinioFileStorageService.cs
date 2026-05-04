@@ -1,4 +1,3 @@
-using System.Text;
 using DocumentService.Application.Interfaces;
 using Microsoft.Extensions.Options;
 using Minio;
@@ -22,7 +21,7 @@ public class MinioFileStorageService : IFileStorageService
             .Build();
     }
 
-    public async Task<string> UploadAsync(string fileName, string content)
+    public async Task<string> UploadAsync(string fileName, string contentType, byte[] content)
     {
         var bucketExists = await _minioClient.BucketExistsAsync(
             new BucketExistsArgs().WithBucket(_options.BucketName));
@@ -33,8 +32,7 @@ public class MinioFileStorageService : IFileStorageService
                 new MakeBucketArgs().WithBucket(_options.BucketName));
         }
 
-        var bytes = Encoding.UTF8.GetBytes(content);
-        await using var stream = new MemoryStream(bytes);
+        await using var stream = new MemoryStream(content);
 
         await _minioClient.PutObjectAsync(
             new PutObjectArgs()
@@ -42,7 +40,7 @@ public class MinioFileStorageService : IFileStorageService
                 .WithObject(fileName)
                 .WithStreamData(stream)
                 .WithObjectSize(stream.Length)
-                .WithContentType("text/plain"));
+                .WithContentType(contentType));
 
         return $"{_options.BucketName}/{fileName}";
     }

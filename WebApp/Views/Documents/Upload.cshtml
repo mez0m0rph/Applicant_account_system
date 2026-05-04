@@ -4,22 +4,14 @@
 }
 <h2>Загрузить документ</h2>
 
-<form asp-action="Upload" method="post">
+<form asp-action="Upload" method="post" enctype="multipart/form-data">
     <div class="mb-3">
         <label class="form-label">Type (0 = Passport, 1 = EducationDocument)</label>
         <input asp-for="Type" class="form-control" />
     </div>
     <div class="mb-3">
-        <label class="form-label">FileName</label>
-        <input asp-for="FileName" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">ContentType</label>
-        <input asp-for="ContentType" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label class="form-label">StoragePath</label>
-        <input asp-for="StoragePath" class="form-control" />
+        <label class="form-label">Файл</label>
+        <input asp-for="UploadedFile" type="file" class="form-control" />
     </div>
     <div class="mb-3">
         <label class="form-label">SeriesNumber</label>

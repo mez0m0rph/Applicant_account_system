@@ -1,8 +1,8 @@
-using System.Security.Claims;
 using DocumentService.Application.DTOs;
 using DocumentService.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace DocumentService.API.Controllers;
 
@@ -18,29 +18,31 @@ public class DocumentsController : ControllerBase
         _service = service;
     }
 
-    private Guid GetUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrWhiteSpace(userIdClaim))
-            throw new Exception("Пользователь не авторизован");
-
-        return Guid.Parse(userIdClaim);
-    }
-
     [HttpPost]
     public async Task<IActionResult> Upload([FromBody] UploadDocumentRequest request)
     {
-        var userId = GetUserId();
-        await _service.UploadAsync(userId, request);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var email = User.FindFirst(ClaimTypes.Email)?.Value ?? User.FindFirst("email")?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+            return Unauthorized("Некорректный user id");
+
+        if (string.IsNullOrWhiteSpace(email))
+            return Unauthorized("Email не найден в токене");
+
+        await _service.UploadAsync(applicantUserId, email, request);
         return Ok("Документ загружен");
     }
 
-    [HttpGet("me")]
-    public async Task<IActionResult> GetMyDocuments()
+    [HttpGet("my")]
+    public async Task<IActionResult> GetMy()
     {
-        var userId = GetUserId();
-        var documents = await _service.GetMyDocumentsAsync(userId);
-        return Ok(documents);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+            return Unauthorized("Некорректный user id");
+
+        var result = await _service.GetMyDocumentsAsync(applicantUserId);
+        return Ok(result);
     }
 }

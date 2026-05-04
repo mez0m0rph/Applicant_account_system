@@ -20,7 +20,7 @@ public class DocumentApiService : IDocumentApiService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<ApiResult<string>> UploadAsync(UploadDocumentViewModel model)
+    public async Task<ApiResult<string>> UploadAsync(UploadDocumentApiModel model)
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 

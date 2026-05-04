@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace AuthService.Infrastructure.Services;
@@ -20,34 +19,32 @@ public class JwtService : IJwtService
 
     public string GenerateToken(User user)
     {
-        var claims = new[]
+        var key = _configuration["Jwt:Key"] ?? throw new Exception("Jwt:Key is not configured");
+        var issuer = _configuration["Jwt:Issuer"];
+        var audience = _configuration["Jwt:Audience"];
+
+        var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role.ToString())
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Role, user.Role.ToString())
         };
 
-        var keyString = _configuration["Jwt:Key"];
-        if (string.IsNullOrWhiteSpace(keyString))
-            throw new InvalidOperationException("Jwt:Key is not configured");
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+        var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
+            issuer: issuer,
+            audience: audience,
             claims: claims,
             expires: DateTime.UtcNow.AddHours(2),
-            signingCredentials: creds
-        );
+            signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     public string GenerateRefreshToken()
     {
-        var bytes = RandomNumberGenerator.GetBytes(64);
-        return Convert.ToBase64String(bytes);
+        return Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
     }
 }

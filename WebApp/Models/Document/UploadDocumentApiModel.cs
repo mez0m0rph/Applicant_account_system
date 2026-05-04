@@ -1,11 +1,11 @@
-using Microsoft.AspNetCore.Http;
-
 namespace WebApp.Models.Document;
 
-public class UploadDocumentViewModel
+public class UploadDocumentApiModel
 {
     public int Type { get; set; }
-    public IFormFile? UploadedFile { get; set; }
+    public string FileName { get; set; } = string.Empty;
+    public string ContentType { get; set; } = string.Empty;
+    public string FileContentBase64 { get; set; } = string.Empty;
     public string? SeriesNumber { get; set; }
     public string? IssuedBy { get; set; }
     public string? BirthPlace { get; set; }

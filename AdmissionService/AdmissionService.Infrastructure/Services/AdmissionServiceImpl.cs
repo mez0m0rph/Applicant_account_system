@@ -20,7 +20,7 @@ public class AdmissionServiceImpl : IAdmissionService
         _messagePublisher = messagePublisher;
     }
 
-    public async Task CreateAdmissionAsync(Guid applicantUserId, CreateAdmissionRequest request)
+    public async Task CreateAdmissionAsync(Guid applicantUserId, string applicantEmail, CreateAdmissionRequest request)
     {
         var existingAdmission = await _repository.GetByApplicantUserIdAsync(applicantUserId);
 
@@ -54,7 +54,7 @@ public class AdmissionServiceImpl : IAdmissionService
         await _messagePublisher.PublishAsync(new NotificationRequestedEvent
         {
             UserId = applicantUserId,
-            Email = "applicant@example.com",
+            Email = applicantEmail,
             Subject = "Заявление создано",
             Message = "Ваше заявление успешно создано."
         });

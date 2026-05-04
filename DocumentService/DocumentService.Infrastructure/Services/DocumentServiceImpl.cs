@@ -22,11 +22,17 @@ public class DocumentServiceImpl : IDocumentService
         _fileStorageService = fileStorageService;
     }
 
-    public async Task UploadAsync(Guid applicantUserId, UploadDocumentRequest request)
+    public async Task UploadAsync(Guid applicantUserId, string applicantEmail, UploadDocumentRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.FileContentBase64))
+            throw new Exception("Файл не передан");
+
+        var fileBytes = Convert.FromBase64String(request.FileContentBase64);
+
         var storagePath = await _fileStorageService.UploadAsync(
             request.FileName,
-            $"Document content for {request.FileName}");
+            request.ContentType,
+            fileBytes);
 
         var file = new StoredFile
         {
@@ -58,7 +64,7 @@ public class DocumentServiceImpl : IDocumentService
         await _messagePublisher.PublishAsync(new NotificationRequestedEvent
         {
             UserId = applicantUserId,
-            Email = "applicant@example.com",
+            Email = applicantEmail,
             Subject = "Документ загружен",
             Message = $"Документ {request.FileName} успешно загружен."
         });

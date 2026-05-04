@@ -4,6 +4,6 @@ namespace DocumentService.Application.Interfaces;
 
 public interface IDocumentService
 {
-    Task UploadAsync(Guid applicantUserId, UploadDocumentRequest request);
+    Task UploadAsync(Guid applicantUserId, string applicantEmail, UploadDocumentRequest request);
     Task<List<DocumentResponse>> GetMyDocumentsAsync(Guid applicantUserId);
 }

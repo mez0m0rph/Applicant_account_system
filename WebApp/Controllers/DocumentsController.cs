@@ -29,7 +29,29 @@ public class DocumentsController : Controller
     [HttpPost]
     public async Task<IActionResult> Upload(UploadDocumentViewModel model)
     {
-        var result = await _documentApiService.UploadAsync(model);
+        if (model.UploadedFile == null || model.UploadedFile.Length == 0)
+        {
+            TempData["Message"] = "Файл не выбран";
+            return RedirectToAction("Upload");
+        }
+
+        await using var memoryStream = new MemoryStream();
+        await model.UploadedFile.CopyToAsync(memoryStream);
+
+        var apiModel = new UploadDocumentApiModel
+        {
+            Type = model.Type,
+            FileName = model.UploadedFile.FileName,
+            ContentType = model.UploadedFile.ContentType,
+            FileContentBase64 = Convert.ToBase64String(memoryStream.ToArray()),
+            SeriesNumber = model.SeriesNumber,
+            IssuedBy = model.IssuedBy,
+            BirthPlace = model.BirthPlace,
+            IssueDate = model.IssueDate,
+            EducationDocumentName = model.EducationDocumentName
+        };
+
+        var result = await _documentApiService.UploadAsync(apiModel);
         TempData["Message"] = result.Success ? "Документ загружен" : result.Error;
 
         return RedirectToAction("My");
