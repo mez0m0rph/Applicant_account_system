@@ -4,10 +4,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
-
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddScoped<IAccountApiService, AccountApiService>();
+builder.Services.AddScoped<IAuthApiService, AuthApiService>();
 builder.Services.AddScoped<IApplicantApiService, ApplicantApiService>();
 builder.Services.AddScoped<IProgramApiService, ProgramApiService>();
 builder.Services.AddScoped<IAdmissionApiService, AdmissionApiService>();

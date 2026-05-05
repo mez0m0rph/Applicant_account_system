@@ -24,6 +24,11 @@ public class AppDbContext : DbContext
             entity.Property(x => x.PasswordHash)
                 .IsRequired();
 
+            entity.Property(x => x.Role)
+                .HasConversion<string>()
+                .HasMaxLength(64)
+                .IsRequired();
+
             entity.Property(x => x.RefreshToken);
 
             entity.HasIndex(x => x.Email).IsUnique();

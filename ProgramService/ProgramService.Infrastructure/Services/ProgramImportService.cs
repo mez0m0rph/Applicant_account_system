@@ -21,7 +21,7 @@ public class ProgramImportService : IProgramImportService
     {
         var request = new HttpRequestMessage(
             HttpMethod.Get,
-            "https://1c-mockup.kreosoft.space/api/programs");
+            "https://1c-mockup.kreosoft.space/api/dictionary/programs");
 
         var credentials = Convert.ToBase64String(
             System.Text.Encoding.UTF8.GetBytes("student:ny6gQnyn4ecbBrP9l1Fz"));
@@ -31,7 +31,9 @@ public class ProgramImportService : IProgramImportService
         var response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
-        var items = await response.Content.ReadFromJsonAsync<List<ExternalProgramDto>>() ?? new();
+        var payload = await response.Content.ReadFromJsonAsync<ExternalProgramsResponse>();
+        var items = payload?.Programs ?? new List<ExternalProgramDto>();
+
         var count = 0;
 
         foreach (var item in items)
@@ -46,15 +48,15 @@ public class ProgramImportService : IProgramImportService
                     ExternalId = item.Id,
                     Code = item.Code,
                     Title = item.Name,
-                    Description = item.Description ?? string.Empty,
-                    BudgetPlaces = item.BudgetPlaces,
-                    PaidPlaces = item.PaidPlaces,
-                    Faculty = item.FacultyName ?? string.Empty,
-                    EducationLevel = item.EducationLevel ?? string.Empty,
+                    Description = string.Empty,
+                    BudgetPlaces = 0,
+                    PaidPlaces = 0,
+                    Faculty = item.Faculty?.Name ?? string.Empty,
+                    EducationLevel = item.EducationLevel?.Name ?? string.Empty,
                     EducationForm = item.EducationForm ?? string.Empty,
                     Language = item.Language ?? string.Empty,
-                    Duration = item.Duration,
-                    Degree = item.EducationLevel ?? string.Empty,
+                    Duration = 0,
+                    Degree = item.EducationLevel?.Name ?? string.Empty,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -65,15 +67,11 @@ public class ProgramImportService : IProgramImportService
             {
                 existing.Code = item.Code;
                 existing.Title = item.Name;
-                existing.Description = item.Description ?? string.Empty;
-                existing.BudgetPlaces = item.BudgetPlaces;
-                existing.PaidPlaces = item.PaidPlaces;
-                existing.Faculty = item.FacultyName ?? string.Empty;
-                existing.EducationLevel = item.EducationLevel ?? string.Empty;
+                existing.Faculty = item.Faculty?.Name ?? string.Empty;
+                existing.EducationLevel = item.EducationLevel?.Name ?? string.Empty;
                 existing.EducationForm = item.EducationForm ?? string.Empty;
                 existing.Language = item.Language ?? string.Empty;
-                existing.Duration = item.Duration;
-                existing.Degree = item.EducationLevel ?? string.Empty;
+                existing.Degree = item.EducationLevel?.Name ?? string.Empty;
                 existing.UpdatedAt = DateTime.UtcNow;
 
                 await _repository.UpdateAsync(existing);

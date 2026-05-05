@@ -1,16 +1,29 @@
 namespace ProgramService.Application.DTOs.External;
 
+public class ExternalProgramsResponse
+{
+    public List<ExternalProgramDto> Programs { get; set; } = new();
+}
+
 public class ExternalProgramDto
 {
     public string Id { get; set; } = string.Empty;
     public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public string? FacultyName { get; set; }
-    public string? EducationLevel { get; set; }
-    public string? EducationForm { get; set; }
-    public string? Language { get; set; }
-    public int BudgetPlaces { get; set; }
-    public int PaidPlaces { get; set; }
-    public int Duration { get; set; }
+    public string Language { get; set; } = string.Empty;
+    public string EducationForm { get; set; } = string.Empty;
+
+    public ExternalFacultyDto Faculty { get; set; } = new();
+    public ExternalEducationLevelDto EducationLevel { get; set; } = new();
+}
+
+public class ExternalFacultyDto
+{
+    public string Name { get; set; } = string.Empty;
+}
+
+public class ExternalEducationLevelDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
 }
