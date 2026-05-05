@@ -34,6 +34,12 @@ public class AdmissionsController : ControllerBase
         return Ok("Заявление создано");
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        return Ok(await _service.GetAllAsync());
+    }
+
     [HttpGet("my")]
     public async Task<IActionResult> GetMy()
     {
@@ -44,5 +50,26 @@ public class AdmissionsController : ControllerBase
 
         var result = await _service.GetMyAdmissionAsync(applicantUserId);
         return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/assign-manager")]
+    public async Task<IActionResult> AssignManager(Guid id, [FromBody] AssignManagerRequest request)
+    {
+        await _service.AssignManagerAsync(id, request.ManagerUserId, request.ManagerEmail);
+        return Ok("Менеджер назначен");
+    }
+
+    [HttpPost("{id:guid}/release-manager")]
+    public async Task<IActionResult> ReleaseManager(Guid id)
+    {
+        await _service.ReleaseManagerAsync(id);
+        return Ok("Менеджер снят");
+    }
+
+    [HttpPost("{id:guid}/status")]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateAdmissionStatusRequest request)
+    {
+        await _service.UpdateStatusAsync(id, request.Status);
+        return Ok("Статус обновлен");
     }
 }

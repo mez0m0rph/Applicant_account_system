@@ -1,0 +1,33 @@
+@model WebApp.Models.Manager.CreateManagerViewModel
+@{
+    ViewData["Title"] = "Создать менеджера";
+}
+<h2>Создать менеджера / главного менеджера</h2>
+
+<form asp-action="CreateManager" method="post">
+    <div class="mb-3">
+        <label class="form-label">ФИО</label>
+        <input asp-for="FullName" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Пароль</label>
+        <input asp-for="Password" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Роль</label>
+        <select asp-for="Role" class="form-control">
+            <option value="Manager">Manager</option>
+            <option value="MainManager">MainManager</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Факультет</label>
+        <input asp-for="Faculty" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Создать</button>
+</form>

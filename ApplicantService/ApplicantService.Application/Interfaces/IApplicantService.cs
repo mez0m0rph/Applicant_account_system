@@ -4,7 +4,7 @@ namespace ApplicantService.Application.Interfaces;
 
 public interface IApplicantService
 {
-    Task CreateAsync(Guid userId, CreateRequest request);
-    Task<GetProfileResponse> GetMyProfileAsync(Guid userId);
-    Task UpdateAsync(Guid userId, UpdateProfileRequest request);
+    Task CreateAsync(Guid userId, CreateApplicantRequest request);
+    Task<ApplicantResponse?> GetMyAsync(Guid userId);
+    Task UpdateAsync(Guid userId, UpdateApplicantRequest request);
 }

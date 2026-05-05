@@ -10,18 +10,15 @@ namespace AuthService.Infrastructure.Services;
 public class AuthServiceImpl : IAuthService
 {
     private readonly IUserRepository _userRepository;
-    private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IJwtService _jwtService;
     private readonly IMessagePublisher _messagePublisher;
 
     public AuthServiceImpl(
         IUserRepository userRepository,
-        IRefreshTokenRepository refreshTokenRepository,
         IJwtService jwtService,
         IMessagePublisher messagePublisher)
     {
         _userRepository = userRepository;
-        _refreshTokenRepository = refreshTokenRepository;
         _jwtService = jwtService;
         _messagePublisher = messagePublisher;
     }
@@ -29,21 +26,19 @@ public class AuthServiceImpl : IAuthService
     public async Task RegisterAsync(RegisterRequest request)
     {
         var existingUser = await _userRepository.GetByEmailAsync(request.Email);
-
         if (existingUser != null)
             throw new Exception("Пользователь с таким email уже существует");
-
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
         var user = new User
         {
             Id = Guid.NewGuid(),
             Email = request.Email,
-            PasswordHash = passwordHash,
-            Role = UserRole.Applicant
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Role = UserRole.Applicant,
+            RefreshToken = null
         };
 
-        await _userRepository.AddAsync(user);
+        await _userRepository.CreateAsync(user);
 
         await _messagePublisher.PublishAsync(new NotificationRequestedEvent
         {
@@ -54,106 +49,88 @@ public class AuthServiceImpl : IAuthService
         });
     }
 
-    public async Task<AuthTokensResponse> LoginAsync(LoginRequest request)
+    public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            throw new Exception("Неверный email или пароль");
 
-        if (user == null)
-            throw new Exception("Такой пользователь не найден");
+        var accessToken = _jwtService.GenerateToken(user);
+        var refreshToken = _jwtService.GenerateRefreshToken();
 
-        var isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+        user.RefreshToken = refreshToken;
+        await _userRepository.UpdateAsync(user);
 
-        if (!isPasswordValid)
-            throw new Exception("Неверный пароль");
-
-        return await IssueTokensAsync(user);
-    }
-
-    public async Task<AuthTokensResponse> RefreshAsync(RefreshTokenRequest request)
-    {
-        var existingRefreshToken = await _refreshTokenRepository.GetByTokenAsync(request.RefreshToken);
-
-        if (existingRefreshToken == null)
-            throw new Exception("Refresh token не найден");
-
-        if (existingRefreshToken.IsRevoked)
-            throw new Exception("Refresh token уже отозван");
-
-        if (existingRefreshToken.ExpiresAtUtc <= DateTime.UtcNow)
-            throw new Exception("Refresh token истек");
-
-        existingRefreshToken.IsRevoked = true;
-        await _refreshTokenRepository.UpdateAsync(existingRefreshToken);
-
-        return await IssueTokensAsync(existingRefreshToken.User);
-    }
-
-    public async Task LogoutAsync(LogoutRequest request)
-    {
-        var existingRefreshToken = await _refreshTokenRepository.GetByTokenAsync(request.RefreshToken);
-
-        if (existingRefreshToken == null)
-            return;
-
-        if (!existingRefreshToken.IsRevoked)
+        return new AuthResponse
         {
-            existingRefreshToken.IsRevoked = true;
-            await _refreshTokenRepository.UpdateAsync(existingRefreshToken);
-        }
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        };
+    }
+
+    public async Task<AuthResponse> RefreshTokenAsync(RefreshTokenRequest request)
+    {
+        var user = await _userRepository.GetByRefreshTokenAsync(request.RefreshToken);
+        if (user == null)
+            throw new Exception("Неверный refresh token");
+
+        var accessToken = _jwtService.GenerateToken(user);
+        var refreshToken = _jwtService.GenerateRefreshToken();
+
+        user.RefreshToken = refreshToken;
+        await _userRepository.UpdateAsync(user);
+
+        return new AuthResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        };
     }
 
     public async Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request)
     {
         var user = await _userRepository.GetByIdAsync(userId);
-
         if (user == null)
             throw new Exception("Пользователь не найден");
 
-        var isPasswordValid = BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash);
-
-        if (!isPasswordValid)
-            throw new Exception("Текущий пароль неверный");
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+            throw new Exception("Текущий пароль введен неверно");
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
         await _userRepository.UpdateAsync(user);
     }
 
-    public async Task<CurrentUserResponse> GetCurrentUserAsync(Guid userId)
+    public async Task<Guid> CreateStaffUserAsync(CreateStaffUserRequest request)
     {
-        var user = await _userRepository.GetByIdAsync(userId);
+        var existingUser = await _userRepository.GetByEmailAsync(request.Email);
+        if (existingUser != null)
+            throw new Exception("Пользователь с таким email уже существует");
 
-        if (user == null)
-            throw new Exception("Пользователь не найден");
+        if (!Enum.TryParse<UserRole>(request.Role, true, out var role))
+            throw new Exception("Некорректная роль");
 
-        return new CurrentUserResponse
-        {
-            Id = user.Id,
-            Email = user.Email,
-            Role = user.Role.ToString()
-        };
-    }
+        if (role == UserRole.Applicant)
+            throw new Exception("Для staff нельзя использовать роль Applicant");
 
-    private async Task<AuthTokensResponse> IssueTokensAsync(User user)
-    {
-        var accessToken = _jwtService.GenerateToken(user);
-        var refreshTokenValue = _jwtService.GenerateRefreshToken();
-
-        var refreshToken = new RefreshToken
+        var user = new User
         {
             Id = Guid.NewGuid(),
-            Token = refreshTokenValue,
-            UserId = user.Id,
-            User = user,
-            ExpiresAtUtc = DateTime.UtcNow.AddDays(7),
-            IsRevoked = false
+            Email = request.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Role = role,
+            RefreshToken = null
         };
 
-        await _refreshTokenRepository.AddAsync(refreshToken);
+        await _userRepository.CreateAsync(user);
 
-        return new AuthTokensResponse
+        await _messagePublisher.PublishAsync(new NotificationRequestedEvent
         {
-            AccessToken = accessToken,
-            RefreshToken = refreshTokenValue
-        };
+            UserId = user.Id,
+            Email = user.Email,
+            Subject = "Служебный аккаунт создан",
+            Message = $"Для вас создан аккаунт с ролью {role}."
+        });
+
+        return user.Id;
     }
 }

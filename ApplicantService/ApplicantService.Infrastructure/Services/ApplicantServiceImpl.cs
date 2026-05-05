@@ -1,6 +1,7 @@
 using ApplicantService.Application.DTOs;
 using ApplicantService.Application.Interfaces;
 using ApplicantService.Domain.Entities;
+using ApplicantService.Domain.Enums;
 
 namespace ApplicantService.Infrastructure.Services;
 
@@ -13,11 +14,10 @@ public class ApplicantServiceImpl : IApplicantService
         _repository = repository;
     }
 
-    public async Task CreateAsync(Guid userId, CreateRequest request)
+    public async Task CreateAsync(Guid userId, CreateApplicantRequest request)
     {
-        var existingProfile = await _repository.GetByUserIdAsync(userId);
-
-        if (existingProfile != null)
+        var existing = await _repository.GetByUserIdAsync(userId);
+        if (existing != null)
             throw new Exception("Профиль уже существует");
 
         var applicant = new Applicant
@@ -25,39 +25,48 @@ public class ApplicantServiceImpl : IApplicantService
             Id = Guid.NewGuid(),
             UserId = userId,
             FullName = request.FullName,
+            Email = request.Email,
             Phone = request.Phone,
-            BirthDate = request.BirthDate
+            BirthDate = request.BirthDate,
+            Gender = (Gender)request.Gender,
+            Citizenship = request.Citizenship
         };
 
         await _repository.CreateAsync(applicant);
     }
 
-    public async Task<GetProfileResponse> GetMyProfileAsync(Guid userId)
+    public async Task<ApplicantResponse?> GetMyAsync(Guid userId)
     {
-        var existingProfile = await _repository.GetByUserIdAsync(userId);
+        var applicant = await _repository.GetByUserIdAsync(userId);
+        if (applicant == null)
+            return null;
 
-        if (existingProfile == null)
-            throw new Exception("Профиль не был создан ранее");
-
-        return new GetProfileResponse
+        return new ApplicantResponse
         {
-            FullName = existingProfile.FullName,
-            Phone = existingProfile.Phone,
-            BirthDate = existingProfile.BirthDate
+            Id = applicant.Id,
+            UserId = applicant.UserId,
+            FullName = applicant.FullName,
+            Email = applicant.Email,
+            Phone = applicant.Phone,
+            BirthDate = applicant.BirthDate,
+            Gender = applicant.Gender.ToString(),
+            Citizenship = applicant.Citizenship
         };
     }
 
-    public async Task UpdateAsync(Guid userId, UpdateProfileRequest request)
+    public async Task UpdateAsync(Guid userId, UpdateApplicantRequest request)
     {
-        var existingProfile = await _repository.GetByUserIdAsync(userId);
+        var applicant = await _repository.GetByUserIdAsync(userId);
+        if (applicant == null)
+            throw new Exception("Профиль не найден");
 
-        if (existingProfile == null)
-            throw new Exception("Профиль не был создан ранее");
+        applicant.FullName = request.FullName;
+        applicant.Email = request.Email;
+        applicant.Phone = request.Phone;
+        applicant.BirthDate = request.BirthDate;
+        applicant.Gender = (Gender)request.Gender;
+        applicant.Citizenship = request.Citizenship;
 
-        existingProfile.FullName = request.FullName;
-        existingProfile.Phone = request.Phone;
-        existingProfile.BirthDate = request.BirthDate;
-
-        await _repository.UpdateAsync(existingProfile);
+        await _repository.UpdateAsync(applicant);
     }
 }

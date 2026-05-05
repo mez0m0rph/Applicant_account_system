@@ -11,44 +11,49 @@ namespace ApplicantService.API.Controllers;
 [Authorize]
 public class ApplicantController : ControllerBase
 {
-    private readonly IApplicantService _applicantService;
+    private readonly IApplicantService _service;
 
-    public ApplicantController(IApplicantService applicantService)
+    public ApplicantController(IApplicantService service)
     {
-        _applicantService = applicantService;
-    }
-
-    private Guid GetUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (string.IsNullOrWhiteSpace(userIdClaim))
-            throw new Exception("Пользователь не авторизован");
-
-        return Guid.Parse(userIdClaim);
+        _service = service;
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateRequest request)
+    public async Task<IActionResult> Create([FromBody] CreateApplicantRequest request)
     {
-        var userId = GetUserId();
-        await _applicantService.CreateAsync(userId, request);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized("Некорректный user id");
+
+        await _service.CreateAsync(userId, request);
         return Ok("Профиль создан");
     }
 
     [HttpGet("me")]
-    public async Task<IActionResult> GetMe()
+    public async Task<IActionResult> GetMy()
     {
-        var userId = GetUserId();
-        var profile = await _applicantService.GetMyProfileAsync(userId);
-        return Ok(profile);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized("Некорректный user id");
+
+        var result = await _service.GetMyAsync(userId);
+        if (result == null)
+            return NotFound();
+
+        return Ok(result);
     }
 
     [HttpPut("me")]
-    public async Task<IActionResult> UpdateMe([FromBody] UpdateProfileRequest request)
+    public async Task<IActionResult> Update([FromBody] UpdateApplicantRequest request)
     {
-        var userId = GetUserId();
-        await _applicantService.UpdateAsync(userId, request);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized("Некорректный user id");
+
+        await _service.UpdateAsync(userId, request);
         return Ok("Профиль обновлен");
     }
 }

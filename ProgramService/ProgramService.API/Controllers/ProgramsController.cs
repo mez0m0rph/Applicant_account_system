@@ -4,63 +4,29 @@ using ProgramService.Application.Interfaces;
 namespace ProgramService.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("programs")]
 public class ProgramsController : ControllerBase
 {
-    private readonly IStudyProgramService _service;
-    public ProgramsController(IStudyProgramService service)
+    private readonly IProgramRepository _repository;
+    private readonly IProgramImportService _importService;
+
+    public ProgramsController(IProgramRepository repository, IProgramImportService importService)
     {
-        _service = service;
+        _repository = repository;
+        _importService = importService;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var programs = await _service.GetAllAsync();
-        return Ok(programs);
+        var result = await _repository.GetAllAsync();
+        return Ok(result);
     }
 
-    [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(Guid id)
+    [HttpPost("import")]
+    public async Task<IActionResult> Import()
     {
-        var program = await _service.GetByIdAsync(id);
-
-        if (program == null) 
-            return NotFound();
-
-        return Ok(program);
-    }
-
-
-    [HttpGet("faculty/{faculty}")]
-    public async Task<IActionResult> GetByFaculty(string faculty)
-    {
-        var programs = await _service.GetByFacultyAsync(faculty);
-        return Ok(programs);
-    }
-
-    [HttpGet("degree/{degree}")]
-    public async Task<IActionResult> GetByDegree(string degree)
-    {
-        var programs = await _service.GetByDegreeAsync(degree);
-        return Ok(programs);
-    }
-
-    [HttpGet("search")]
-    public async Task<IActionResult> Search(
-        [FromQuery] string? faculty, 
-        [FromQuery]string? degree,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10)
-    {
-        var programs = await _service.SearchAsync(faculty, degree, page, pageSize);
-        return Ok(programs);
-    }
-
-    [HttpPost("sync")]
-    public async Task<IActionResult> Sync()
-    {
-        await _service.SyncProgramsAsync();
-        return Ok("Sync completed");
+        var count = await _importService.ImportAsync();
+        return Ok(new { imported = count });
     }
 }

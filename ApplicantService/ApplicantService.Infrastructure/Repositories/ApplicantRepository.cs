@@ -16,7 +16,7 @@ public class ApplicantRepository : IApplicantRepository
 
     public async Task<Applicant?> GetByUserIdAsync(Guid userId)
     {
-        return await _context.Applicants.FirstOrDefaultAsync(a => a.UserId == userId);
+        return await _context.Applicants.FirstOrDefaultAsync(x => x.UserId == userId);
     }
 
     public async Task CreateAsync(Applicant applicant)

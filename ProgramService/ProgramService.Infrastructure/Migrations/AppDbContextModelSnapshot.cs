@@ -31,6 +31,10 @@ namespace ProgramService.Infrastructure.Migrations
                     b.Property<int>("BudgetPlaces")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -45,11 +49,23 @@ namespace ProgramService.Infrastructure.Migrations
                     b.Property<int>("Duration")
                         .HasColumnType("integer");
 
+                    b.Property<string>("EducationForm")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EducationLevel")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("ExternalId")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Faculty")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Language")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -64,6 +80,9 @@ namespace ProgramService.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ExternalId")
+                        .IsUnique();
 
                     b.ToTable("StudyPrograms");
                 });

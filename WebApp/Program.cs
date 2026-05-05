@@ -3,19 +3,19 @@ using WebApp.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddSession(options =>
-{
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-});
+builder.Services.AddHttpClient();
 
-builder.Services.AddHttpClient<IAuthApiService, AuthApiService>();
-builder.Services.AddHttpClient<IApplicantApiService, ApplicantApiService>();
-builder.Services.AddHttpClient<IProgramApiService, ProgramApiService>();
-builder.Services.AddHttpClient<IAdmissionApiService, AdmissionApiService>();
-builder.Services.AddHttpClient<IDocumentApiService, DocumentApiService>();
-builder.Services.AddHttpClient<INotificationApiService, NotificationApiService>();
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddScoped<IAccountApiService, AccountApiService>();
+builder.Services.AddScoped<IApplicantApiService, ApplicantApiService>();
+builder.Services.AddScoped<IProgramApiService, ProgramApiService>();
+builder.Services.AddScoped<IAdmissionApiService, AdmissionApiService>();
+builder.Services.AddScoped<IDocumentApiService, DocumentApiService>();
+builder.Services.AddScoped<INotificationApiService, NotificationApiService>();
+builder.Services.AddScoped<IStaffApiService, StaffApiService>();
+
+builder.Services.AddSession();
 
 var app = builder.Build();
 
@@ -26,15 +26,15 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
-app.UseSession();
-app.UseAuthorization();
 
-app.MapStaticAssets();
+app.UseSession();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

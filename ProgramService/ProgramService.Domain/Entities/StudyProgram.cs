@@ -2,15 +2,24 @@ namespace ProgramService.Domain.Entities;
 
 public class StudyProgram
 {
-    public Guid Id { get; set; } 
-    public string ExternalId { get; set; } = null!;
-    public string Title { get; set; } = null!;
-    public string Description { get; set; } = null!;
-    public int BudgetPlaces { get; set; } 
+    public Guid Id { get; set; }
+
+    public string ExternalId { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+
+    public int BudgetPlaces { get; set; }
     public int PaidPlaces { get; set; }
-    public string Faculty { get; set; } = null!;
+
+    public string Faculty { get; set; } = string.Empty;
+    public string EducationLevel { get; set; } = string.Empty;
+    public string EducationForm { get; set; } = string.Empty;
+    public string Language { get; set; } = string.Empty;
+
     public int Duration { get; set; }
-    public string Degree { get; set; } = null!;
+    public string Degree { get; set; } = string.Empty;
+
     public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; } 
+    public DateTime UpdatedAt { get; set; }
 }

@@ -1,5 +1,6 @@
 using AuthService.Application.DTOs;
 using AuthService.Application.Interfaces;
+using AuthService.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -18,58 +19,44 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(RegisterRequest request)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         await _authService.RegisterAsync(request);
         return Ok("Пользователь зарегистрирован");
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var result = await _authService.LoginAsync(request);
         return Ok(result);
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh(RefreshTokenRequest request)
+    public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
     {
-        var result = await _authService.RefreshAsync(request);
+        var result = await _authService.RefreshTokenAsync(request);
         return Ok(result);
-    }
-
-    [HttpPost("logout")]
-    public async Task<IActionResult> Logout(LogoutRequest request)
-    {
-        await _authService.LogoutAsync(request);
-        return Ok("Выход выполнен");
     }
 
     [Authorize]
     [HttpPost("change-password")]
-    public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrWhiteSpace(userIdClaim))
-            return Unauthorized("Пользователь не авторизован");
 
-        var userId = Guid.Parse(userIdClaim);
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized("Некорректный user id");
 
         await _authService.ChangePasswordAsync(userId, request);
         return Ok("Пароль успешно изменен");
     }
 
-    [Authorize]
-    [HttpGet("me")]
-    public async Task<IActionResult> Me()
+    [Authorize(Roles = nameof(UserRole.Admin))]
+    [HttpPost("staff")]
+    public async Task<IActionResult> CreateStaff([FromBody] CreateStaffUserRequest request)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrWhiteSpace(userIdClaim))
-            return Unauthorized("Пользователь не авторизован");
-
-        var userId = Guid.Parse(userIdClaim);
-        var result = await _authService.GetCurrentUserAsync(userId);
-
-        return Ok(result);
+        var userId = await _authService.CreateStaffUserAsync(request);
+        return Ok(new { userId });
     }
 }
