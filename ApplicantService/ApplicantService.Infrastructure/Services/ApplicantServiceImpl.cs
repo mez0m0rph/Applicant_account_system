@@ -14,6 +14,16 @@ public class ApplicantServiceImpl : IApplicantService
         _repository = repository;
     }
 
+    private static DateTime NormalizeUtc(DateTime value)
+    {
+        return value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+        };
+    }
+
     public async Task CreateAsync(Guid userId, CreateApplicantRequest request)
     {
         var existing = await _repository.GetByUserIdAsync(userId);
@@ -27,7 +37,7 @@ public class ApplicantServiceImpl : IApplicantService
             FullName = request.FullName,
             Email = request.Email,
             Phone = request.Phone,
-            BirthDate = request.BirthDate,
+            BirthDate = NormalizeUtc(request.BirthDate),
             Gender = (Gender)request.Gender,
             Citizenship = request.Citizenship
         };
@@ -49,7 +59,7 @@ public class ApplicantServiceImpl : IApplicantService
             Email = applicant.Email,
             Phone = applicant.Phone,
             BirthDate = applicant.BirthDate,
-            Gender = applicant.Gender.ToString(),
+            Gender = (int)applicant.Gender,
             Citizenship = applicant.Citizenship
         };
     }
@@ -57,13 +67,29 @@ public class ApplicantServiceImpl : IApplicantService
     public async Task UpdateAsync(Guid userId, UpdateApplicantRequest request)
     {
         var applicant = await _repository.GetByUserIdAsync(userId);
+
         if (applicant == null)
-            throw new Exception("Профиль не найден");
+        {
+            applicant = new Applicant
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                FullName = request.FullName,
+                Email = request.Email,
+                Phone = request.Phone,
+                BirthDate = NormalizeUtc(request.BirthDate),
+                Gender = (Gender)request.Gender,
+                Citizenship = request.Citizenship
+            };
+
+            await _repository.CreateAsync(applicant);
+            return;
+        }
 
         applicant.FullName = request.FullName;
         applicant.Email = request.Email;
         applicant.Phone = request.Phone;
-        applicant.BirthDate = request.BirthDate;
+        applicant.BirthDate = NormalizeUtc(request.BirthDate);
         applicant.Gender = (Gender)request.Gender;
         applicant.Citizenship = request.Citizenship;
 

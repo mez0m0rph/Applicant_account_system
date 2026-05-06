@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using WebApp.Models.Applicant;
+using WebApp.Models.Common;
 using WebApp.Services;
 
 namespace WebApp.Controllers;
@@ -19,24 +20,26 @@ public class ApplicantController : Controller
         var result = await _applicantApiService.GetMyProfileAsync();
 
         if (!result.Success || result.Data == null)
-            return View(new ProfileViewModel());
+            return View(new ProfileViewModel { HasProfile = false });
 
+        result.Data.HasProfile = true;
         return View(result.Data);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(ProfileViewModel model)
+    public async Task<IActionResult> Save(ProfileViewModel model)
     {
-        var result = await _applicantApiService.CreateAsync(model);
-        TempData["Message"] = result.Success ? "Профиль создан" : result.Error;
-        return RedirectToAction("Profile");
-    }
+        ApiResult<string> result;
 
-    [HttpPost]
-    public async Task<IActionResult> Update(ProfileViewModel model)
-    {
-        var result = await _applicantApiService.UpdateAsync(model);
-        TempData["Message"] = result.Success ? "Профиль обновлен" : result.Error;
+        if (model.HasProfile)
+            result = await _applicantApiService.UpdateAsync(model);
+        else
+            result = await _applicantApiService.CreateAsync(model);
+
+        TempData["Message"] = result.Success
+            ? (model.HasProfile ? "Профиль обновлен" : "Профиль создан")
+            : result.Error;
+
         return RedirectToAction("Profile");
     }
 }

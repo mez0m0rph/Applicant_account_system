@@ -11,7 +11,7 @@ public class ApplicantResponse
 
     public DateTime BirthDate { get; set; }
 
-    public string Gender { get; set; } = string.Empty;
+    public int Gender { get; set; }
 
     public string Citizenship { get; set; } = string.Empty;
 }

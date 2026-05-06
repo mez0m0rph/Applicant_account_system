@@ -22,6 +22,16 @@ public class DocumentServiceImpl : IDocumentService
         _fileStorageService = fileStorageService;
     }
 
+    private static DateTime NormalizeUtc(DateTime value)
+    {
+        return value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+        };
+    }
+
     public async Task UploadAsync(Guid applicantUserId, string applicantEmail, UploadDocumentRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.FileContentBase64))
@@ -45,17 +55,21 @@ public class DocumentServiceImpl : IDocumentService
 
         await _repository.AddStoredFileAsync(file);
 
+        var normalizedIssueDate = request.IssueDate.HasValue
+            ? NormalizeUtc(request.IssueDate.Value)
+            : DateTime.UtcNow;
+
         var document = new Document
         {
             Id = Guid.NewGuid(),
             ApplicantUserId = applicantUserId,
             Type = request.Type,
             StoredFileId = file.Id,
-            SeriesNumber = request.SeriesNumber,
-            IssuedBy = request.IssuedBy,
-            BirthPlace = request.BirthPlace,
-            IssueDate = request.IssueDate,
-            EducationDocumentName = request.EducationDocumentName,
+            SeriesNumber = request.SeriesNumber ?? string.Empty,
+            IssuedBy = request.IssuedBy ?? string.Empty,
+            BirthPlace = request.BirthPlace ?? string.Empty,
+            IssueDate = normalizedIssueDate,
+            EducationDocumentName = request.EducationDocumentName ?? string.Empty,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -95,11 +109,11 @@ public class DocumentServiceImpl : IDocumentService
                     StoragePath = file.StoragePath,
                     UploadedAt = file.UploadedAt
                 },
-                SeriesNumber = document.SeriesNumber,
-                IssuedBy = document.IssuedBy,
-                BirthPlace = document.BirthPlace,
+                SeriesNumber = document.SeriesNumber ?? string.Empty,
+                IssuedBy = document.IssuedBy ?? string.Empty,
+                BirthPlace = document.BirthPlace ?? string.Empty,
                 IssueDate = document.IssueDate,
-                EducationDocumentName = document.EducationDocumentName,
+                EducationDocumentName = document.EducationDocumentName ?? string.Empty,
                 CreatedAt = document.CreatedAt
             });
         }
