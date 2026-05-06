@@ -1,3 +1,14 @@
+@{
+    var accessToken = Context.Session.GetString("AccessToken");
+    var userRole = Context.Session.GetString("UserRole");
+    var isAuthenticated = !string.IsNullOrWhiteSpace(accessToken);
+
+    var isApplicant = userRole == "Applicant";
+    var isManager = userRole == "Manager";
+    var isMainManager = userRole == "MainManager";
+    var isAdmin = userRole == "Admin";
+    var isStaff = isManager || isMainManager || isAdmin;
+}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -15,30 +26,52 @@
 
             <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                 <ul class="navbar-nav flex-grow-1">
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-controller="Applicant" asp-action="Profile">Профиль</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-controller="Program" asp-action="Index">Программы</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-controller="Admission" asp-action="My">Мое заявление</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-controller="Documents" asp-action="My">Документы</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-controller="Staff" asp-action="Admissions">Все поступления</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-controller="Staff" asp-action="Managers">Менеджеры</a>
-                    </li>
+                    @if (isAuthenticated && isApplicant)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Applicant" asp-action="Profile">Профиль</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Programs" asp-action="Index">Программы</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Admissions" asp-action="My">Мое заявление</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Documents" asp-action="My">Документы</a>
+                        </li>
+                    }
+
+                    @if (isAuthenticated && isStaff)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Staff" asp-action="Admissions">Все поступления</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Staff" asp-action="Managers">Менеджеры</a>
+                        </li>
+                    }
                 </ul>
 
                 <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Выход</a>
-                    </li>
+                    @if (isAuthenticated)
+                    {
+                        <li class="nav-item">
+                            <span class="nav-link text-muted">@userRole</span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Выход</a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Вход</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Регистрация</a>
+                        </li>
+                    }
                 </ul>
             </div>
         </div>

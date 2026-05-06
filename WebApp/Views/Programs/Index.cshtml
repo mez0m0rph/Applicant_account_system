@@ -1,29 +1,71 @@
-@model List<WebApp.Models.Program.StudyProgramViewModel>
+@model WebApp.Models.Program.ProgramsIndexPageViewModel
 @{
     ViewData["Title"] = "Программы";
 }
-<h2>Образовательные программы</h2>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Название</th>
-            <th>Факультет</th>
-            <th>Степень</th>
-            <th>Бюджет</th>
-            <th>Платные</th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var item in Model)
-    {
-        <tr>
-            <td>@item.Title</td>
-            <td>@item.Faculty</td>
-            <td>@item.Degree</td>
-            <td>@item.BudgetPlaces</td>
-            <td>@item.PaidPlaces</td>
-        </tr>
-    }
-    </tbody>
-</table>
+<h2>Список программ</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
+@if (!Model.Programs.Any())
+{
+    <div class="alert alert-warning">Программы не найдены.</div>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Код</th>
+                <th>Название</th>
+                <th>Факультет</th>
+                <th>Уровень</th>
+                <th>Форма</th>
+                <th>Язык</th>
+                <th>Приоритет</th>
+                <th>Действие</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in Model.Programs)
+        {
+            var selected = Model.SelectedProgramIds.Contains(p.Id);
+
+            <tr>
+                <td>@p.Code</td>
+                <td>@p.Title</td>
+                <td>@p.Faculty</td>
+                <td>@p.EducationLevel</td>
+                <td>@p.EducationForm</td>
+                <td>@p.Language</td>
+                <td>
+                    @if (!selected)
+                    {
+                        <form asp-controller="Admissions" asp-action="AddProgram" method="post" id="form-@p.Id">
+                            <input type="hidden" name="programId" value="@p.Id" />
+                            <input type="number" name="priority" value="1" min="1" class="form-control" />
+                        </form>
+                    }
+                    else
+                    {
+                        <span class="text-success">Уже выбрана</span>
+                    }
+                </td>
+                <td>
+                    @if (!selected)
+                    {
+                        <button type="submit" form="form-@p.Id" class="btn btn-success btn-sm">Добавить</button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-secondary btn-sm" disabled>Добавлена</button>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

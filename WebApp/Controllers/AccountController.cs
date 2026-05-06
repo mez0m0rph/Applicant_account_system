@@ -22,20 +22,15 @@ public class AccountController : Controller
     [HttpPost]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
-        if (!ModelState.IsValid)
-            return View(model);
-
         var result = await _authApiService.LoginAsync(model);
 
-        if (!result.Success || result.Data == null)
+        if (!result.Success)
         {
-            ViewBag.Error = result.Error;
+            TempData["Message"] = result.Error;
             return View(model);
         }
 
-        HttpContext.Session.SetString("AccessToken", result.Data.AccessToken);
-        HttpContext.Session.SetString("RefreshToken", result.Data.RefreshToken);
-
+        TempData["Message"] = "Вы успешно вошли в систему";
         return RedirectToAction("Index", "Home");
     }
 
@@ -48,24 +43,23 @@ public class AccountController : Controller
     [HttpPost]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
-        if (!ModelState.IsValid)
-            return View(model);
-
         var result = await _authApiService.RegisterAsync(model);
 
         if (!result.Success)
         {
-            ViewBag.Error = result.Error;
+            TempData["Message"] = result.Error;
             return View(model);
         }
 
-        return RedirectToAction("Login");
+        TempData["Message"] = "Регистрация успешна. Теперь войдите в систему.";
+        return RedirectToAction(nameof(Login));
     }
 
-    [HttpPost]
+    [HttpGet]
     public IActionResult Logout()
     {
         HttpContext.Session.Clear();
-        return RedirectToAction("Index", "Home");
+        TempData["Message"] = "Вы вышли из системы";
+        return RedirectToAction(nameof(Login));
     }
 }

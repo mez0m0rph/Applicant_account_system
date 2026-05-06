@@ -4,13 +4,15 @@ namespace AdmissionService.Application.Interfaces;
 
 public interface IAdmissionRepository
 {
-    Task<List<Admission>> GetAllAsync();
     Task<Admission?> GetByApplicantUserIdAsync(Guid applicantUserId);
-    Task<Admission?> GetByIdAsync(Guid admissionId);
-
-    Task CreateAdmissionAsync(Admission admission);
+    Task<Admission?> GetByIdAsync(Guid id);
+    Task<List<Admission>> GetAllAsync();
+    Task CreateAsync(Admission admission);
     Task UpdateAdmissionAsync(Admission admission);
 
-    Task CreateAdmissionProgramsAsync(List<AdmissionProgram> programs);
     Task<List<AdmissionProgram>> GetProgramsByAdmissionIdAsync(Guid admissionId);
+    Task<AdmissionProgram?> GetProgramAsync(Guid admissionId, Guid programId);
+    Task AddProgramAsync(AdmissionProgram program);
+    Task UpdateProgramAsync(AdmissionProgram program);
+    Task RemoveProgramAsync(AdmissionProgram program);
 }

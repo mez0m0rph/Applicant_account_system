@@ -15,15 +15,15 @@ public class ProgramApiService : IProgramApiService
         _configuration = configuration;
     }
 
-    public async Task<ApiResult<List<StudyProgramViewModel>>> GetAllAsync()
+    public async Task<ApiResult<List<ProgramViewModel>>> GetAllAsync()
     {
         var baseUrl = _configuration["ApiUrls:Program"];
         var response = await _httpClient.GetAsync($"{baseUrl}/programs");
 
         if (!response.IsSuccessStatusCode)
-            return ApiResult<List<StudyProgramViewModel>>.Fail(await response.Content.ReadAsStringAsync());
+            return ApiResult<List<ProgramViewModel>>.Fail(await response.Content.ReadAsStringAsync());
 
-        var data = await response.Content.ReadFromJsonAsync<List<StudyProgramViewModel>>();
-        return ApiResult<List<StudyProgramViewModel>>.Ok(data ?? new List<StudyProgramViewModel>());
+        var data = await response.Content.ReadFromJsonAsync<List<ProgramViewModel>>();
+        return ApiResult<List<ProgramViewModel>>.Ok(data ?? new());
     }
 }

@@ -12,19 +12,16 @@ public class AdmissionServiceImpl : IAdmissionService
     private readonly IAdmissionRepository _repository;
     private readonly IMessagePublisher _messagePublisher;
 
-    public AdmissionServiceImpl(
-        IAdmissionRepository repository,
-        IMessagePublisher messagePublisher)
+    public AdmissionServiceImpl(IAdmissionRepository repository, IMessagePublisher messagePublisher)
     {
         _repository = repository;
         _messagePublisher = messagePublisher;
     }
 
-    public async Task CreateAdmissionAsync(Guid applicantUserId, string applicantEmail, CreateAdmissionRequest request)
+    public async Task CreateAsync(Guid applicantUserId, string applicantEmail)
     {
-        var existingAdmission = await _repository.GetByApplicantUserIdAsync(applicantUserId);
-
-        if (existingAdmission != null)
+        var existing = await _repository.GetByApplicantUserIdAsync(applicantUserId);
+        if (existing != null)
             throw new Exception("Заявление уже подано");
 
         var admission = new Admission
@@ -33,69 +30,95 @@ public class AdmissionServiceImpl : IAdmissionService
             ApplicantUserId = applicantUserId,
             ApplicantEmail = applicantEmail,
             Status = AdmissionStatus.Created,
-            AssignedManagerUserId = null,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
-        await _repository.CreateAdmissionAsync(admission);
-
-        var admissionPrograms = request.Programs
-            .Select(p => new AdmissionProgram
-            {
-                Id = Guid.NewGuid(),
-                AdmissionId = admission.Id,
-                ProgramId = p.ProgramId,
-                Priority = p.Priority
-            })
-            .ToList();
-
-        await _repository.CreateAdmissionProgramsAsync(admissionPrograms);
-
-        await _messagePublisher.PublishAsync(new NotificationRequestedEvent
-        {
-            UserId = applicantUserId,
-            Email = applicantEmail,
-            Subject = "Заявление создано",
-            Message = "Ваше заявление успешно создано."
-        });
+        await _repository.CreateAsync(admission);
     }
 
-    public async Task<AdmissionResponse> GetMyAdmissionAsync(Guid applicantUserId)
+    public async Task<AdmissionResponse?> GetMyAsync(Guid applicantUserId)
     {
         var admission = await _repository.GetByApplicantUserIdAsync(applicantUserId);
-
         if (admission == null)
-            throw new Exception("Заявление не было создано");
+            return null;
 
-        var programs = await _repository.GetProgramsByAdmissionIdAsync(admission.Id);
-
-        return Map(admission, programs);
+        return await MapAsync(admission);
     }
 
     public async Task<List<AdmissionResponse>> GetAllAsync()
     {
-        var admissions = await _repository.GetAllAsync();
+        var items = await _repository.GetAllAsync();
         var result = new List<AdmissionResponse>();
 
-        foreach (var admission in admissions)
-        {
-            var programs = await _repository.GetProgramsByAdmissionIdAsync(admission.Id);
-            result.Add(Map(admission, programs));
-        }
+        foreach (var item in items)
+            result.Add(await MapAsync(item));
 
         return result;
+    }
+
+    public async Task AddProgramAsync(Guid applicantUserId, Guid programId, int priority)
+    {
+        var admission = await _repository.GetByApplicantUserIdAsync(applicantUserId);
+        if (admission == null)
+            throw new Exception("Сначала подайте заявление");
+
+        var existing = await _repository.GetProgramAsync(admission.Id, programId);
+        if (existing != null)
+            throw new Exception("Программа уже добавлена в заявление");
+
+        var item = new AdmissionProgram
+        {
+            Id = Guid.NewGuid(),
+            AdmissionId = admission.Id,
+            ProgramId = programId,
+            Priority = priority
+        };
+
+        await _repository.AddProgramAsync(item);
+
+        admission.UpdatedAt = DateTime.UtcNow;
+        await _repository.UpdateAdmissionAsync(admission);
+    }
+
+    public async Task UpdateProgramPriorityAsync(Guid applicantUserId, Guid programId, int priority)
+    {
+        var admission = await _repository.GetByApplicantUserIdAsync(applicantUserId);
+        if (admission == null)
+            throw new Exception("Заявление не найдено");
+
+        var existing = await _repository.GetProgramAsync(admission.Id, programId);
+        if (existing == null)
+            throw new Exception("Программа не найдена в заявлении");
+
+        existing.Priority = priority;
+        await _repository.UpdateProgramAsync(existing);
+
+        admission.UpdatedAt = DateTime.UtcNow;
+        await _repository.UpdateAdmissionAsync(admission);
+    }
+
+    public async Task RemoveProgramAsync(Guid applicantUserId, Guid programId)
+    {
+        var admission = await _repository.GetByApplicantUserIdAsync(applicantUserId);
+        if (admission == null)
+            throw new Exception("Заявление не найдено");
+
+        var existing = await _repository.GetProgramAsync(admission.Id, programId);
+        if (existing == null)
+            throw new Exception("Программа не найдена в заявлении");
+
+        await _repository.RemoveProgramAsync(existing);
+
+        admission.UpdatedAt = DateTime.UtcNow;
+        await _repository.UpdateAdmissionAsync(admission);
     }
 
     public async Task AssignManagerAsync(Guid admissionId, Guid managerUserId, string managerEmail)
     {
         var admission = await _repository.GetByIdAsync(admissionId);
-
         if (admission == null)
             throw new Exception("Заявление не найдено");
-
-        if (admission.AssignedManagerUserId != null)
-            throw new Exception("Менеджер уже назначен");
 
         admission.AssignedManagerUserId = managerUserId;
         admission.Status = AdmissionStatus.OnReview;
@@ -105,30 +128,28 @@ public class AdmissionServiceImpl : IAdmissionService
 
         await _messagePublisher.PublishAsync(new NotificationRequestedEvent
         {
-            UserId = managerUserId,
-            Email = managerEmail,
-            Subject = "Вам назначено поступление",
-            Message = $"Вам назначено поступление {admission.Id}."
+            UserId = admission.ApplicantUserId,
+            Email = admission.ApplicantEmail,
+            Subject = "Назначен менеджер",
+            Message = $"На ваше заявление назначен менеджер: {managerEmail}"
         });
 
         await _messagePublisher.PublishAsync(new NotificationRequestedEvent
         {
-            UserId = admission.ApplicantUserId,
-            Email = admission.ApplicantEmail,
-            Subject = "Назначен менеджер",
-            Message = $"Для вашего поступления назначен менеджер. Статус заявления: {admission.Status}."
+            UserId = managerUserId,
+            Email = managerEmail,
+            Subject = "Вам назначено заявление",
+            Message = $"Вам назначено заявление абитуриента {admission.ApplicantEmail}"
         });
     }
 
     public async Task ReleaseManagerAsync(Guid admissionId)
     {
         var admission = await _repository.GetByIdAsync(admissionId);
-
         if (admission == null)
             throw new Exception("Заявление не найдено");
 
         admission.AssignedManagerUserId = null;
-        admission.Status = AdmissionStatus.Created;
         admission.UpdatedAt = DateTime.UtcNow;
 
         await _repository.UpdateAdmissionAsync(admission);
@@ -137,7 +158,6 @@ public class AdmissionServiceImpl : IAdmissionService
     public async Task UpdateStatusAsync(Guid admissionId, string status)
     {
         var admission = await _repository.GetByIdAsync(admissionId);
-
         if (admission == null)
             throw new Exception("Заявление не найдено");
 
@@ -153,13 +173,15 @@ public class AdmissionServiceImpl : IAdmissionService
         {
             UserId = admission.ApplicantUserId,
             Email = admission.ApplicantEmail,
-            Subject = "Статус поступления изменен",
-            Message = $"Новый статус вашего заявления: {admission.Status}."
+            Subject = "Изменение статуса заявления",
+            Message = $"Статус вашего заявления изменен на {parsedStatus}"
         });
     }
 
-    private static AdmissionResponse Map(Admission admission, List<AdmissionProgram> programs)
+    private async Task<AdmissionResponse> MapAsync(Admission admission)
     {
+        var programs = await _repository.GetProgramsByAdmissionIdAsync(admission.Id);
+
         return new AdmissionResponse
         {
             Id = admission.Id,
@@ -169,13 +191,11 @@ public class AdmissionServiceImpl : IAdmissionService
             AssignedManagerUserId = admission.AssignedManagerUserId,
             CreatedAt = admission.CreatedAt,
             UpdatedAt = admission.UpdatedAt,
-            Programs = programs
-                .Select(p => new AdmissionProgramDto
-                {
-                    ProgramId = p.ProgramId,
-                    Priority = p.Priority
-                })
-                .ToList()
+            Programs = programs.Select(x => new AdmissionProgramItemResponse
+            {
+                ProgramId = x.ProgramId,
+                Priority = x.Priority
+            }).ToList()
         };
     }
 }

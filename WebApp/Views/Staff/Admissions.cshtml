@@ -1,7 +1,6 @@
-@model List<WebApp.Models.Admission.AdmissionViewModel>
+@model WebApp.Models.Staff.StaffAdmissionsPageViewModel
 @{
     ViewData["Title"] = "Все поступления";
-    var statuses = new[] { "Created", "OnReview", "Confirmed", "Rejected", "Closed" };
 }
 
 <h2>Все поступления</h2>
@@ -11,64 +10,103 @@
     <div class="alert alert-info">@TempData["Message"]</div>
 }
 
-@if (!Model.Any())
+@if (!Model.Admissions.Any())
 {
-    <div class="alert alert-warning">Заявлений пока нет.</div>
+    <div class="alert alert-warning">Поступления пока отсутствуют.</div>
 }
 else
 {
-    @foreach (var admission in Model)
-    {
-        <div class="card mb-4">
-            <div class="card-body">
-                <h4>@admission.Id</h4>
-
-                <p><strong>ApplicantUserId:</strong> @admission.ApplicantUserId</p>
-                <p><strong>Email абитуриента:</strong> @admission.ApplicantEmail</p>
-                <p><strong>Статус:</strong> @admission.Status</p>
-                <p><strong>AssignedManagerUserId:</strong> @(admission.AssignedManagerUserId?.ToString() ?? "не назначен")</p>
-                <p><strong>Создано:</strong> @admission.CreatedAt.ToLocalTime()</p>
-                <p><strong>Обновлено:</strong> @admission.UpdatedAt.ToLocalTime()</p>
-
-                <hr />
-
-                <form asp-action="AssignManager" method="post" class="mb-3">
-                    <input type="hidden" name="AdmissionId" value="@admission.Id" />
-
-                    <div class="mb-2">
-                        <label class="form-label">ManagerUserId</label>
-                        <input name="ManagerUserId" class="form-control" />
-                    </div>
-
-                    <div class="mb-2">
-                        <label class="form-label">ManagerEmail</label>
-                        <input name="ManagerEmail" class="form-control" />
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Назначить менеджера</button>
-                </form>
-
-                <form asp-action="ReleaseManager" method="post" class="mb-3">
-                    <input type="hidden" name="admissionId" value="@admission.Id" />
-                    <button type="submit" class="btn btn-warning">Снять менеджера</button>
-                </form>
-
-                <form asp-action="UpdateAdmissionStatus" method="post">
-                    <input type="hidden" name="AdmissionId" value="@admission.Id" />
-
-                    <div class="mb-2">
-                        <label class="form-label">Новый статус</label>
-                        <select name="Status" class="form-control">
-                            @foreach (var status in statuses)
-                            {
-                                <option value="@status" selected="@(status == admission.Status ? "selected" : null)">@status</option>
-                            }
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ApplicantEmail</th>
+                <th>Status</th>
+                <th>Programs</th>
+                <th>Менеджер</th>
+                <th>CreatedAt</th>
+                <th>UpdatedAt</th>
+                <th>Назначить менеджера</th>
+                <th>Снять менеджера</th>
+                <th>Изменить статус</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var a in Model.Admissions)
+        {
+            <tr>
+                <td>@a.ApplicantEmail</td>
+                <td>@a.Status</td>
+                <td>
+                    @if (a.Programs == null || !a.Programs.Any())
+                    {
+                        <span>Нет программ</span>
+                    }
+                    else
+                    {
+                        <ul class="mb-0">
+                        @foreach (var p in a.Programs.OrderBy(x => x.Priority))
+                        {
+                            <li>
+                                @(string.IsNullOrWhiteSpace(p.ProgramCode) ? "" : $"{p.ProgramCode} — ")
+                                @(string.IsNullOrWhiteSpace(p.ProgramTitle) ? p.ProgramId.ToString() : p.ProgramTitle)
+                                (приоритет @p.Priority)
+                            </li>
+                        }
+                        </ul>
+                    }
+                </td>
+                <td>
+                    @if (!string.IsNullOrWhiteSpace(a.AssignedManagerName))
+                    {
+                        <span>@a.AssignedManagerName (@a.AssignedManagerEmail)</span>
+                    }
+                    else
+                    {
+                        <span>не назначен</span>
+                    }
+                </td>
+                <td>@a.CreatedAt.ToLocalTime()</td>
+                <td>@a.UpdatedAt.ToLocalTime()</td>
+                <td>
+                    @if (Model.Managers.Any())
+                    {
+                        <form asp-action="AssignManager" method="post">
+                            <input type="hidden" name="AdmissionId" value="@a.Id" />
+                            <select name="ManagerUserId" class="form-control mb-2">
+                                @foreach (var m in Model.Managers)
+                                {
+                                    <option value="@m.UserId">@m.FullName (@m.Email)</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-primary btn-sm">Назначить</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <span>Нет менеджеров</span>
+                    }
+                </td>
+                <td>
+                    <form asp-action="ReleaseManager" method="post">
+                        <input type="hidden" name="admissionId" value="@a.Id" />
+                        <button type="submit" class="btn btn-warning btn-sm">Снять</button>
+                    </form>
+                </td>
+                <td>
+                    <form asp-action="UpdateAdmissionStatus" method="post">
+                        <input type="hidden" name="AdmissionId" value="@a.Id" />
+                        <select name="Status" class="form-control mb-2">
+                            <option value="Created">Created</option>
+                            <option value="OnReview">OnReview</option>
+                            <option value="Confirmed">Confirmed</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Closed">Closed</option>
                         </select>
-                    </div>
-
-                    <button type="submit" class="btn btn-success">Изменить статус</button>
-                </form>
-            </div>
-        </div>
-    }
+                        <button type="submit" class="btn btn-success btn-sm">Обновить</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
 }

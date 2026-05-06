@@ -19,7 +19,7 @@ public class AdmissionsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateAdmissionRequest request)
+    public async Task<IActionResult> Create()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var email = User.FindFirst(ClaimTypes.Email)?.Value ?? User.FindFirst("email")?.Value;
@@ -30,14 +30,8 @@ public class AdmissionsController : ControllerBase
         if (string.IsNullOrWhiteSpace(email))
             return Unauthorized("Email не найден в токене");
 
-        await _service.CreateAdmissionAsync(applicantUserId, email, request);
+        await _service.CreateAsync(applicantUserId, email);
         return Ok("Заявление создано");
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        return Ok(await _service.GetAllAsync());
     }
 
     [HttpGet("my")]
@@ -48,8 +42,53 @@ public class AdmissionsController : ControllerBase
         if (!Guid.TryParse(userIdClaim, out var applicantUserId))
             return Unauthorized("Некорректный user id");
 
-        var result = await _service.GetMyAdmissionAsync(applicantUserId);
+        var result = await _service.GetMyAsync(applicantUserId);
+        if (result == null)
+            return NotFound();
+
         return Ok(result);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        return Ok(await _service.GetAllAsync());
+    }
+
+    [HttpPost("my/programs")]
+    public async Task<IActionResult> AddProgram([FromBody] AddProgramToAdmissionRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+            return Unauthorized("Некорректный user id");
+
+        await _service.AddProgramAsync(applicantUserId, request.ProgramId, request.Priority);
+        return Ok("Программа добавлена в заявление");
+    }
+
+    [HttpPut("my/programs/{programId:guid}/priority")]
+    public async Task<IActionResult> UpdatePriority(Guid programId, [FromBody] UpdateAdmissionProgramPriorityRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+            return Unauthorized("Некорректный user id");
+
+        await _service.UpdateProgramPriorityAsync(applicantUserId, programId, request.Priority);
+        return Ok("Приоритет обновлен");
+    }
+
+    [HttpDelete("my/programs/{programId:guid}")]
+    public async Task<IActionResult> RemoveProgram(Guid programId)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+            return Unauthorized("Некорректный user id");
+
+        await _service.RemoveProgramAsync(applicantUserId, programId);
+        return Ok("Программа удалена из заявления");
     }
 
     [HttpPost("{id:guid}/assign-manager")]

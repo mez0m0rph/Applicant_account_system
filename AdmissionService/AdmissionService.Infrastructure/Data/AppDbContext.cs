@@ -9,8 +9,8 @@ public class AppDbContext : DbContext
     {
     }
 
-    public DbSet<Admission> Admissions => Set<Admission>();
-    public DbSet<AdmissionProgram> AdmissionPrograms => Set<AdmissionProgram>();
+    public DbSet<Admission> Admissions { get; set; } = null!;
+    public DbSet<AdmissionProgram> AdmissionPrograms { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,6 +30,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<AdmissionProgram>(entity =>
         {
             entity.HasKey(x => x.Id);
+
+            entity.HasIndex(x => new { x.AdmissionId, x.ProgramId }).IsUnique();
         });
     }
 }

@@ -14,7 +14,12 @@ builder.Services.AddScoped<IDocumentApiService, DocumentApiService>();
 builder.Services.AddScoped<INotificationApiService, NotificationApiService>();
 builder.Services.AddScoped<IStaffApiService, StaffApiService>();
 
-builder.Services.AddSession();
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.IdleTimeout = TimeSpan.FromHours(8);
+});
 
 var app = builder.Build();
 
@@ -29,7 +34,6 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseSession();
-app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

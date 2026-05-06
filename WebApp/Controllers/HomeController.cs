@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Models;
 
 namespace WebApp.Controllers;
 
@@ -7,18 +6,10 @@ public class HomeController : Controller
 {
     public IActionResult Index()
     {
-        ViewBag.IsAuthenticated = !string.IsNullOrWhiteSpace(HttpContext.Session.GetString("AccessToken"));
+        var token = HttpContext.Session.GetString("AccessToken");
+        ViewBag.IsAuthenticated = !string.IsNullOrWhiteSpace(token);
+        ViewBag.UserEmail = HttpContext.Session.GetString("UserEmail");
+        ViewBag.UserRole = HttpContext.Session.GetString("UserRole");
         return View();
-    }
-
-    public IActionResult Privacy()
-    {
-        return View();
-    }
-
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = HttpContext.TraceIdentifier });
     }
 }

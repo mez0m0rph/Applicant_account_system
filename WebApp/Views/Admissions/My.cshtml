@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Мое заявление";
 }
+
 <h2>Мое заявление</h2>
 
 @if (TempData["Message"] != null)
@@ -11,23 +12,83 @@
 
 @if (Model == null)
 {
-    <p>Заявление пока не создано.</p>
+    <div class="alert alert-warning">
+        Заявление пока не создано.
+    </div>
+
+    <form asp-action="Create" method="post">
+        <button type="submit" class="btn btn-success">Подать заявление</button>
+    </form>
 }
 else
 {
-    <dl class="row">
-        <dt class="col-sm-3">Статус</dt>
-        <dd class="col-sm-9">@Model.Status</dd>
+    <div class="card mb-3">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Статус</dt>
+                <dd class="col-sm-9">@Model.Status</dd>
 
-        <dt class="col-sm-3">Создано</dt>
-        <dd class="col-sm-9">@Model.CreatedAt</dd>
-    </dl>
+                <dt class="col-sm-3">Создано</dt>
+                <dd class="col-sm-9">@Model.CreatedAt.ToLocalTime()</dd>
 
-    <h4>Программы</h4>
-    <ul>
-        @foreach (var p in Model.Programs)
-        {
-            <li>@p.ProgramId — приоритет @p.Priority</li>
-        }
-    </ul>
+                <dt class="col-sm-3">Обновлено</dt>
+                <dd class="col-sm-9">@Model.UpdatedAt.ToLocalTime()</dd>
+
+                <dt class="col-sm-3">Назначенный менеджер</dt>
+                <dd class="col-sm-9">
+                    @if (!string.IsNullOrWhiteSpace(Model.AssignedManagerName))
+                    {
+                        <span>@Model.AssignedManagerName (@Model.AssignedManagerEmail)</span>
+                    }
+                    else
+                    {
+                        <span>не назначен</span>
+                    }
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <h4>Выбранные программы</h4>
+
+    @if (Model.Programs == null || !Model.Programs.Any())
+    {
+        <div class="alert alert-secondary">Программы пока не выбраны.</div>
+        <a asp-controller="Programs" asp-action="Index" class="btn btn-primary">Перейти к выбору программ</a>
+    }
+    else
+    {
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Код</th>
+                    <th>Название</th>
+                    <th>Priority</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var p in Model.Programs.OrderBy(x => x.Priority))
+            {
+                <tr>
+                    <td>@(string.IsNullOrWhiteSpace(p.ProgramCode) ? "-" : p.ProgramCode)</td>
+                    <td>@(string.IsNullOrWhiteSpace(p.ProgramTitle) ? p.ProgramId.ToString() : p.ProgramTitle)</td>
+                    <td>@p.Priority</td>
+                    <td>
+                        <form asp-action="UpdateProgramPriority" method="post" class="mb-2">
+                            <input type="hidden" name="programId" value="@p.ProgramId" />
+                            <input type="number" name="priority" value="@p.Priority" min="1" class="form-control mb-2" />
+                            <button type="submit" class="btn btn-primary btn-sm">Изменить приоритет</button>
+                        </form>
+
+                        <form asp-action="RemoveProgram" method="post">
+                            <input type="hidden" name="programId" value="@p.ProgramId" />
+                            <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
 }

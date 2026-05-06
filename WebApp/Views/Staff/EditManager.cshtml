@@ -1,16 +1,14 @@
-@model WebApp.Models.Manager.CreateManagerViewModel
+@model WebApp.Models.Manager.EditManagerViewModel
 @{
-    ViewData["Title"] = "Создать менеджера";
+    ViewData["Title"] = "Редактировать менеджера";
 }
 
-<h2>Создать менеджера / главного менеджера</h2>
+<h2>Редактировать менеджера</h2>
 
-@if (TempData["Message"] != null)
-{
-    <div class="alert alert-info">@TempData["Message"]</div>
-}
+<form asp-action="EditManager" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="UserId" />
 
-<form asp-action="CreateManager" method="post">
     <div class="mb-3">
         <label class="form-label">ФИО</label>
         <input asp-for="FullName" class="form-control" />
@@ -19,11 +17,6 @@
     <div class="mb-3">
         <label class="form-label">Email</label>
         <input asp-for="Email" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Пароль</label>
-        <input asp-for="Password" class="form-control" />
     </div>
 
     <div class="mb-3">
@@ -39,6 +32,6 @@
         <input asp-for="Faculty" class="form-control" />
     </div>
 
-    <button type="submit" class="btn btn-primary">Создать</button>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
     <a asp-action="Managers" class="btn btn-secondary">Назад</a>
 </form>

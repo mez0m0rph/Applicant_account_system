@@ -8,6 +8,10 @@ public interface IStaffApiService
 {
     Task<ApiResult<string>> CreateManagerAsync(CreateManagerViewModel model);
     Task<ApiResult<List<ManagerViewModel>>> GetManagersAsync();
+    Task<ApiResult<ManagerViewModel>> GetManagerByIdAsync(Guid id);
+    Task<ApiResult<string>> UpdateManagerAsync(EditManagerViewModel model);
+    Task<ApiResult<string>> DeleteManagerAsync(Guid id);
+
     Task<ApiResult<List<AdmissionViewModel>>> GetAdmissionsAsync();
     Task<ApiResult<string>> AssignManagerAsync(AssignManagerViewModel model);
     Task<ApiResult<string>> ReleaseManagerAsync(Guid admissionId);

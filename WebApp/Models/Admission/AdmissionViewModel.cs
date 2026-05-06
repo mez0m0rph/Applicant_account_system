@@ -10,5 +10,8 @@ public class AdmissionViewModel
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
+    public string AssignedManagerName { get; set; } = string.Empty;
+    public string AssignedManagerEmail { get; set; } = string.Empty;
+
     public List<AdmissionProgramViewModel> Programs { get; set; } = new();
 }

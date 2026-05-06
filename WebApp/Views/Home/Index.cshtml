@@ -1,23 +1,32 @@
-﻿@{
+@{
     ViewData["Title"] = "Главная";
-    var isAuthenticated = ViewBag.IsAuthenticated as bool? ?? false;
+    var isAuthenticated = ViewBag.IsAuthenticated is bool b && b;
+    var userEmail = ViewBag.UserEmail as string;
+    var userRole = ViewBag.UserRole as string;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Applicant Account System</h1>
-    <p>Единая система для абитуриентов, менеджеров и подачи заявлений.</p>
+<h1>Applicant System</h1>
 
-    @if (!isAuthenticated)
-    {
-        <div class="mt-4">
-            <a class="btn btn-primary me-2" asp-controller="Account" asp-action="Login">Войти</a>
-            <a class="btn btn-success" asp-controller="Account" asp-action="Register">Регистрация</a>
-        </div>
-    }
-    else
-    {
-        <div class="mt-4">
-            <p>Вы авторизованы.</p>
-        </div>
-    }
-</div>
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
+@if (isAuthenticated)
+{
+    <div class="alert alert-success">
+        Вы авторизованы @(!string.IsNullOrWhiteSpace(userEmail) ? $"как {userEmail}" : "")
+        @(!string.IsNullOrWhiteSpace(userRole) ? $" ({userRole})" : "")
+    </div>
+
+    <p>Используйте меню сверху для работы с системой.</p>
+}
+else
+{
+    <div class="alert alert-warning">
+        Вы не авторизованы.
+    </div>
+
+    <a asp-controller="Account" asp-action="Login" class="btn btn-primary">Войти</a>
+    <a asp-controller="Account" asp-action="Register" class="btn btn-secondary">Зарегистрироваться</a>
+}

@@ -5,5 +5,5 @@ namespace WebApp.Services;
 
 public interface IProgramApiService
 {
-    Task<ApiResult<List<StudyProgramViewModel>>> GetAllAsync();
+    Task<ApiResult<List<ProgramViewModel>>> GetAllAsync();
 }

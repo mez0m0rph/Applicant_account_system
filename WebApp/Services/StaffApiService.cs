@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using WebApp.Models.Admission;
 using WebApp.Models.Common;
 using WebApp.Models.Manager;
@@ -39,9 +40,9 @@ public class StaffApiService : IStaffApiService
         var authContent = await authResponse.Content.ReadAsStringAsync();
 
         if (!authResponse.IsSuccessStatusCode)
-            return ApiResult<string>.Fail(authContent);
+            return ApiResult<string>.Fail(ReadMessage(authContent, "Ошибка создания пользователя staff"));
 
-        using var authJson = System.Text.Json.JsonDocument.Parse(authContent);
+        using var authJson = JsonDocument.Parse(authContent);
         var userId = authJson.RootElement.GetProperty("userId").GetGuid();
 
         var managerPayload = new
@@ -57,8 +58,8 @@ public class StaffApiService : IStaffApiService
         var managerContent = await managerResponse.Content.ReadAsStringAsync();
 
         return managerResponse.IsSuccessStatusCode
-            ? ApiResult<string>.Ok(managerContent)
-            : ApiResult<string>.Fail(managerContent);
+            ? ApiResult<string>.Ok(ReadMessage(managerContent, "Менеджер создан"))
+            : ApiResult<string>.Fail(ReadMessage(managerContent, "Ошибка создания менеджера"));
     }
 
     public async Task<ApiResult<List<ManagerViewModel>>> GetManagersAsync()
@@ -69,10 +70,61 @@ public class StaffApiService : IStaffApiService
         var response = await _httpClient.GetAsync($"{baseUrl}/managers");
 
         if (!response.IsSuccessStatusCode)
-            return ApiResult<List<ManagerViewModel>>.Fail(await response.Content.ReadAsStringAsync());
+            return ApiResult<List<ManagerViewModel>>.Fail(ReadMessage(await response.Content.ReadAsStringAsync(), "Ошибка получения списка менеджеров"));
 
         var data = await response.Content.ReadFromJsonAsync<List<ManagerViewModel>>();
         return ApiResult<List<ManagerViewModel>>.Ok(data ?? new());
+    }
+
+    public async Task<ApiResult<ManagerViewModel>> GetManagerByIdAsync(Guid id)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Manager"];
+        var response = await _httpClient.GetAsync($"{baseUrl}/managers/{id}");
+
+        if (!response.IsSuccessStatusCode)
+            return ApiResult<ManagerViewModel>.Fail(ReadMessage(await response.Content.ReadAsStringAsync(), "Ошибка получения менеджера"));
+
+        var data = await response.Content.ReadFromJsonAsync<ManagerViewModel>();
+        return data == null
+            ? ApiResult<ManagerViewModel>.Fail("Пустой ответ")
+            : ApiResult<ManagerViewModel>.Ok(data);
+    }
+
+    public async Task<ApiResult<string>> UpdateManagerAsync(EditManagerViewModel model)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Manager"];
+        var payload = new
+        {
+            userId = model.UserId,
+            fullName = model.FullName,
+            email = model.Email,
+            role = model.Role,
+            faculty = model.Faculty
+        };
+
+        var response = await _httpClient.PutAsJsonAsync($"{baseUrl}/managers/{model.Id}", payload);
+        var content = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode
+            ? ApiResult<string>.Ok(ReadMessage(content, "Менеджер обновлен"))
+            : ApiResult<string>.Fail(ReadMessage(content, "Ошибка обновления менеджера"));
+    }
+
+    public async Task<ApiResult<string>> DeleteManagerAsync(Guid id)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Manager"];
+        var response = await _httpClient.DeleteAsync($"{baseUrl}/managers/{id}");
+        var content = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode
+            ? ApiResult<string>.Ok(ReadMessage(content, "Менеджер удален"))
+            : ApiResult<string>.Fail(ReadMessage(content, "Ошибка удаления менеджера"));
     }
 
     public async Task<ApiResult<List<AdmissionViewModel>>> GetAdmissionsAsync()
@@ -83,7 +135,7 @@ public class StaffApiService : IStaffApiService
         var response = await _httpClient.GetAsync($"{baseUrl}/admissions");
 
         if (!response.IsSuccessStatusCode)
-            return ApiResult<List<AdmissionViewModel>>.Fail(await response.Content.ReadAsStringAsync());
+            return ApiResult<List<AdmissionViewModel>>.Fail(ReadMessage(await response.Content.ReadAsStringAsync(), "Ошибка получения списка заявлений"));
 
         var data = await response.Content.ReadFromJsonAsync<List<AdmissionViewModel>>();
         return ApiResult<List<AdmissionViewModel>>.Ok(data ?? new());
@@ -93,11 +145,19 @@ public class StaffApiService : IStaffApiService
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
+        var managersResult = await GetManagersAsync();
+        if (!managersResult.Success)
+            return ApiResult<string>.Fail(managersResult.Error ?? "Ошибка получения списка менеджеров");
+
+        var manager = managersResult.Data?.FirstOrDefault(x => x.UserId == model.ManagerUserId);
+        if (manager == null)
+            return ApiResult<string>.Fail("Менеджер не найден");
+
         var baseUrl = _configuration["ApiUrls:Admission"];
         var payload = new
         {
             managerUserId = model.ManagerUserId,
-            managerEmail = model.ManagerEmail
+            managerEmail = manager.Email
         };
 
         var response = await _httpClient.PostAsJsonAsync(
@@ -107,8 +167,8 @@ public class StaffApiService : IStaffApiService
         var content = await response.Content.ReadAsStringAsync();
 
         return response.IsSuccessStatusCode
-            ? ApiResult<string>.Ok(content)
-            : ApiResult<string>.Fail(content);
+            ? ApiResult<string>.Ok(ReadMessage(content, "Менеджер назначен"))
+            : ApiResult<string>.Fail(ReadMessage(content, "Ошибка назначения менеджера"));
     }
 
     public async Task<ApiResult<string>> ReleaseManagerAsync(Guid admissionId)
@@ -120,8 +180,8 @@ public class StaffApiService : IStaffApiService
         var content = await response.Content.ReadAsStringAsync();
 
         return response.IsSuccessStatusCode
-            ? ApiResult<string>.Ok(content)
-            : ApiResult<string>.Fail(content);
+            ? ApiResult<string>.Ok(ReadMessage(content, "Менеджер снят"))
+            : ApiResult<string>.Fail(ReadMessage(content, "Ошибка снятия менеджера"));
     }
 
     public async Task<ApiResult<string>> UpdateAdmissionStatusAsync(UpdateAdmissionStatusViewModel model)
@@ -138,7 +198,36 @@ public class StaffApiService : IStaffApiService
         var content = await response.Content.ReadAsStringAsync();
 
         return response.IsSuccessStatusCode
-            ? ApiResult<string>.Ok(content)
-            : ApiResult<string>.Fail(content);
+            ? ApiResult<string>.Ok(ReadMessage(content, "Статус обновлен"))
+            : ApiResult<string>.Fail(ReadMessage(content, "Ошибка обновления статуса"));
+    }
+
+    private static string ReadMessage(string? content, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return fallback;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(content);
+            var root = doc.RootElement;
+
+            if (root.ValueKind == JsonValueKind.Object)
+            {
+                if (root.TryGetProperty("error", out var errorProp))
+                    return errorProp.GetString() ?? fallback;
+
+                if (root.TryGetProperty("message", out var messageProp))
+                    return messageProp.GetString() ?? fallback;
+
+                if (root.TryGetProperty("id", out _))
+                    return fallback;
+            }
+        }
+        catch
+        {
+        }
+
+        return content;
     }
 }
