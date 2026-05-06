@@ -40,6 +40,6 @@ public class ApplicantController : Controller
             ? (model.HasProfile ? "Профиль обновлен" : "Профиль создан")
             : result.Error;
 
-        return RedirectToAction("Profile");
+        return RedirectToAction(nameof(Profile));
     }
 }

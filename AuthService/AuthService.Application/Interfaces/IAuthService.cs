@@ -8,5 +8,5 @@ public interface IAuthService
     Task<AuthResponse> LoginAsync(LoginRequest request);
     Task<AuthResponse> RefreshTokenAsync(RefreshTokenRequest request);
     Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request);
-    Task<Guid> CreateStaffUserAsync(CreateStaffUserRequest request);
+    Task<Guid> CreateStaffAsync(CreateStaffRequest request);
 }

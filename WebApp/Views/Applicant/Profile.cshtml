@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Профиль";
 }
+
 <h2>Профиль абитуриента</h2>
 
 @if (TempData["Message"] != null)
@@ -9,8 +10,19 @@
     <div class="alert alert-info">@TempData["Message"]</div>
 }
 
+@if (Model.HasProfile)
+{
+    <div class="alert alert-success">Профиль найден. Можно редактировать данные.</div>
+}
+else
+{
+    <div class="alert alert-warning">Профиль еще не создан. Заполните форму и нажмите «Сохранить».</div>
+}
+
 <form asp-action="Save" method="post">
     <input type="hidden" asp-for="HasProfile" />
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="UserId" />
 
     <div class="mb-3">
         <label class="form-label">ФИО</label>

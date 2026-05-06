@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Мои документы";
 }
+
 <h2>Мои документы</h2>
 
 @if (TempData["Message"] != null)
@@ -9,24 +10,30 @@
     <div class="alert alert-info">@TempData["Message"]</div>
 }
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Тип</th>
-            <th>Файл</th>
-            <th>Путь</th>
-            <th>Дата</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="mb-3">
+    <a asp-action="Upload" class="btn btn-primary">Загрузить документ</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning">Документы пока не загружены.</div>
+}
+else
+{
     @foreach (var doc in Model)
     {
-        <tr>
-            <td>@doc.Type</td>
-            <td>@doc.File.FileName</td>
-            <td>@doc.File.StoragePath</td>
-            <td>@doc.CreatedAt</td>
-        </tr>
+        <div class="card mb-3">
+            <div class="card-body">
+                <p><strong>Тип:</strong> @doc.Type</p>
+                <p><strong>Файл:</strong> @doc.File.FileName</p>
+                <p><strong>ContentType:</strong> @doc.File.ContentType</p>
+                <p><strong>SeriesNumber:</strong> @doc.SeriesNumber</p>
+                <p><strong>IssuedBy:</strong> @doc.IssuedBy</p>
+                <p><strong>BirthPlace:</strong> @doc.BirthPlace</p>
+                <p><strong>IssueDate:</strong> @(doc.IssueDate?.ToLocalTime().ToString("yyyy-MM-dd") ?? "-")</p>
+                <p><strong>EducationDocumentName:</strong> @doc.EducationDocumentName</p>
+                <p><strong>StoragePath:</strong> @doc.File.StoragePath</p>
+            </div>
+        </div>
     }
-    </tbody>
-</table>
+}

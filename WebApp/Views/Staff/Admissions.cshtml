@@ -1,7 +1,9 @@
 @model List<WebApp.Models.Admission.AdmissionViewModel>
 @{
     ViewData["Title"] = "Все поступления";
+    var statuses = new[] { "Created", "OnReview", "Confirmed", "Rejected", "Closed" };
 }
+
 <h2>Все поступления</h2>
 
 @if (TempData["Message"] != null)
@@ -9,47 +11,64 @@
     <div class="alert alert-info">@TempData["Message"]</div>
 }
 
-@foreach (var admission in Model)
+@if (!Model.Any())
 {
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5>@admission.Id</h5>
-            <p><strong>ApplicantUserId:</strong> @admission.ApplicantUserId</p>
-            <p><strong>Status:</strong> @admission.Status</p>
-            <p><strong>AssignedManagerUserId:</strong> @admission.AssignedManagerUserId</p>
+    <div class="alert alert-warning">Заявлений пока нет.</div>
+}
+else
+{
+    @foreach (var admission in Model)
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <h4>@admission.Id</h4>
 
-            <form asp-action="AssignManager" method="post" class="mb-3">
-                <input type="hidden" name="AdmissionId" value="@admission.Id" />
-                <div class="mb-2">
-                    <label class="form-label">ManagerUserId</label>
-                    <input name="ManagerUserId" class="form-control" />
-                </div>
-                <div class="mb-2">
-                    <label class="form-label">ManagerEmail</label>
-                    <input name="ManagerEmail" class="form-control" />
-                </div>
-                <button type="submit" class="btn btn-sm btn-primary">Назначить менеджера</button>
-            </form>
+                <p><strong>ApplicantUserId:</strong> @admission.ApplicantUserId</p>
+                <p><strong>Email абитуриента:</strong> @admission.ApplicantEmail</p>
+                <p><strong>Статус:</strong> @admission.Status</p>
+                <p><strong>AssignedManagerUserId:</strong> @(admission.AssignedManagerUserId?.ToString() ?? "не назначен")</p>
+                <p><strong>Создано:</strong> @admission.CreatedAt.ToLocalTime()</p>
+                <p><strong>Обновлено:</strong> @admission.UpdatedAt.ToLocalTime()</p>
 
-            <form asp-action="ReleaseManager" method="post" class="mb-3">
-                <input type="hidden" name="admissionId" value="@admission.Id" />
-                <button type="submit" class="btn btn-sm btn-warning">Снять менеджера</button>
-            </form>
+                <hr />
 
-            <form asp-action="UpdateAdmissionStatus" method="post">
-                <input type="hidden" name="AdmissionId" value="@admission.Id" />
-                <div class="mb-2">
-                    <label class="form-label">Новый статус</label>
-                    <select name="Status" class="form-control">
-                        <option value="Created">Created</option>
-                        <option value="OnReview">OnReview</option>
-                        <option value="Confirmed">Confirmed</option>
-                        <option value="Rejected">Rejected</option>
-                        <option value="Closed">Closed</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-sm btn-success">Изменить статус</button>
-            </form>
+                <form asp-action="AssignManager" method="post" class="mb-3">
+                    <input type="hidden" name="AdmissionId" value="@admission.Id" />
+
+                    <div class="mb-2">
+                        <label class="form-label">ManagerUserId</label>
+                        <input name="ManagerUserId" class="form-control" />
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label">ManagerEmail</label>
+                        <input name="ManagerEmail" class="form-control" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Назначить менеджера</button>
+                </form>
+
+                <form asp-action="ReleaseManager" method="post" class="mb-3">
+                    <input type="hidden" name="admissionId" value="@admission.Id" />
+                    <button type="submit" class="btn btn-warning">Снять менеджера</button>
+                </form>
+
+                <form asp-action="UpdateAdmissionStatus" method="post">
+                    <input type="hidden" name="AdmissionId" value="@admission.Id" />
+
+                    <div class="mb-2">
+                        <label class="form-label">Новый статус</label>
+                        <select name="Status" class="form-control">
+                            @foreach (var status in statuses)
+                            {
+                                <option value="@status" selected="@(status == admission.Status ? "selected" : null)">@status</option>
+                            }
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Изменить статус</button>
+                </form>
+            </div>
         </div>
-    </div>
+    }
 }

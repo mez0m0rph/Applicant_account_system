@@ -1,6 +1,5 @@
 using AuthService.Application.DTOs;
 using AuthService.Application.Interfaces;
-using AuthService.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -39,6 +38,14 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Roles = "Admin")]
+    [HttpPost("staff")]
+    public async Task<IActionResult> CreateStaff([FromBody] CreateStaffRequest request)
+    {
+        var userId = await _authService.CreateStaffAsync(request);
+        return Ok(new { userId });
+    }
+
     [Authorize]
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
@@ -50,13 +57,5 @@ public class AuthController : ControllerBase
 
         await _authService.ChangePasswordAsync(userId, request);
         return Ok("Пароль успешно изменен");
-    }
-
-    [Authorize(Roles = nameof(UserRole.Admin))]
-    [HttpPost("staff")]
-    public async Task<IActionResult> CreateStaff([FromBody] CreateStaffUserRequest request)
-    {
-        var userId = await _authService.CreateStaffUserAsync(request);
-        return Ok(new { userId });
     }
 }

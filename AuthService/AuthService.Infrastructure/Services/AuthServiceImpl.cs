@@ -34,8 +34,7 @@ public class AuthServiceImpl : IAuthService
             Id = Guid.NewGuid(),
             Email = request.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role = UserRole.Applicant,
-            RefreshToken = null
+            Role = UserRole.Applicant
         };
 
         await _userRepository.CreateAsync(user);
@@ -47,6 +46,36 @@ public class AuthServiceImpl : IAuthService
             Subject = "Регистрация завершена",
             Message = "Ваш аккаунт успешно создан."
         });
+    }
+
+    public async Task<Guid> CreateStaffAsync(CreateStaffRequest request)
+    {
+        var existingUser = await _userRepository.GetByEmailAsync(request.Email);
+        if (existingUser != null)
+            throw new Exception("Пользователь с таким email уже существует");
+
+        if (!Enum.TryParse<UserRole>(request.Role, true, out var parsedRole))
+            throw new Exception("Некорректная роль");
+
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = request.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Role = parsedRole
+        };
+
+        await _userRepository.CreateAsync(user);
+
+        await _messagePublisher.PublishAsync(new NotificationRequestedEvent
+        {
+            UserId = user.Id,
+            Email = user.Email,
+            Subject = "Создан аккаунт сотрудника",
+            Message = $"Для вас создан аккаунт с ролью {parsedRole}. Используйте указанные учетные данные для входа."
+        });
+
+        return user.Id;
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
@@ -98,39 +127,5 @@ public class AuthServiceImpl : IAuthService
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
         await _userRepository.UpdateAsync(user);
-    }
-
-    public async Task<Guid> CreateStaffUserAsync(CreateStaffUserRequest request)
-    {
-        var existingUser = await _userRepository.GetByEmailAsync(request.Email);
-        if (existingUser != null)
-            throw new Exception("Пользователь с таким email уже существует");
-
-        if (!Enum.TryParse<UserRole>(request.Role, true, out var role))
-            throw new Exception("Некорректная роль");
-
-        if (role == UserRole.Applicant)
-            throw new Exception("Для staff нельзя использовать роль Applicant");
-
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = request.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role = role,
-            RefreshToken = null
-        };
-
-        await _userRepository.CreateAsync(user);
-
-        await _messagePublisher.PublishAsync(new NotificationRequestedEvent
-        {
-            UserId = user.Id,
-            Email = user.Email,
-            Subject = "Служебный аккаунт создан",
-            Message = $"Для вас создан аккаунт с ролью {role}."
-        });
-
-        return user.Id;
     }
 }

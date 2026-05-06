@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Менеджеры";
 }
+
 <h2>Список менеджеров</h2>
 
 @if (TempData["Message"] != null)
@@ -9,26 +10,39 @@
     <div class="alert alert-info">@TempData["Message"]</div>
 }
 
-<table class="table">
-    <thead>
+<div class="mb-3">
+    <a asp-action="CreateManager" class="btn btn-primary">Создать менеджера</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning">Менеджеры пока не созданы.</div>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead>
         <tr>
             <th>ФИО</th>
             <th>Email</th>
             <th>Роль</th>
             <th>Факультет</th>
+            <th>UserId</th>
             <th>Создан</th>
         </tr>
-    </thead>
-    <tbody>
-    @foreach (var manager in Model)
-    {
-        <tr>
-            <td>@manager.FullName</td>
-            <td>@manager.Email</td>
-            <td>@manager.Role</td>
-            <td>@manager.Faculty</td>
-            <td>@manager.CreatedAt</td>
-        </tr>
-    }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+        @foreach (var manager in Model)
+        {
+            <tr>
+                <td>@manager.FullName</td>
+                <td>@manager.Email</td>
+                <td>@manager.Role</td>
+                <td>@manager.Faculty</td>
+                <td>@manager.UserId</td>
+                <td>@manager.CreatedAt.ToLocalTime()</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

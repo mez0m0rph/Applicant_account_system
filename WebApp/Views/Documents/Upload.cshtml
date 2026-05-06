@@ -2,37 +2,53 @@
 @{
     ViewData["Title"] = "Загрузить документ";
 }
+
 <h2>Загрузить документ</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
 
 <form asp-action="Upload" method="post" enctype="multipart/form-data">
     <div class="mb-3">
-        <label class="form-label">Type (0 = Passport, 1 = EducationDocument)</label>
-        <input asp-for="Type" class="form-control" />
+        <label class="form-label">Тип документа</label>
+        <select asp-for="Type" class="form-control">
+            <option value="0">Passport</option>
+            <option value="1">EducationDocument</option>
+        </select>
     </div>
+
     <div class="mb-3">
         <label class="form-label">Файл</label>
         <input asp-for="UploadedFile" type="file" class="form-control" />
     </div>
+
     <div class="mb-3">
-        <label class="form-label">SeriesNumber</label>
+        <label class="form-label">Серия / номер</label>
         <input asp-for="SeriesNumber" class="form-control" />
     </div>
+
     <div class="mb-3">
-        <label class="form-label">IssuedBy</label>
+        <label class="form-label">Кем выдан</label>
         <input asp-for="IssuedBy" class="form-control" />
     </div>
+
     <div class="mb-3">
-        <label class="form-label">BirthPlace</label>
+        <label class="form-label">Место рождения</label>
         <input asp-for="BirthPlace" class="form-control" />
     </div>
+
     <div class="mb-3">
-        <label class="form-label">IssueDate</label>
+        <label class="form-label">Дата выдачи</label>
         <input asp-for="IssueDate" type="date" class="form-control" />
     </div>
+
     <div class="mb-3">
-        <label class="form-label">EducationDocumentName</label>
+        <label class="form-label">Название документа об образовании</label>
         <input asp-for="EducationDocumentName" class="form-control" />
     </div>
 
-    <button type="submit" class="btn btn-primary">Загрузить</button>
+    <button type="submit" class="btn btn-success">Загрузить</button>
+    <a asp-action="My" class="btn btn-secondary">Назад</a>
 </form>

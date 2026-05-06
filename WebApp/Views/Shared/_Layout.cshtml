@@ -6,53 +6,60 @@
     <title>@ViewData["Title"] - ApplicantSystem</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/WebApp.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-controller="Home" asp-action="Index">ApplicantSystem</a>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Главная</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Вход</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Регистрация</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Applicant" asp-action="Profile">Профиль</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Programs" asp-action="Index">Программы</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Admissions" asp-action="My">Заявление</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Admissions" asp-action="Create">Подать заявление</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Documents" asp-action="My">Документы</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Documents" asp-action="Upload">Загрузить документ</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Notifications" asp-action="Index">Уведомления</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Staff" asp-action="Managers">Менеджеры</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Staff" asp-action="CreateManager">Создать менеджера</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Staff" asp-action="Admissions">Все поступления</a></li>
-                    </ul>
+<header>
+    <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom mb-3">
+        <div class="container-fluid">
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">ApplicantSystem</a>
 
-                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-flex">
-                        <button type="submit" class="btn btn-outline-danger">Выйти</button>
-                    </form>
-                </div>
+            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <ul class="navbar-nav flex-grow-1">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-controller="Applicant" asp-action="Profile">Профиль</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-controller="Program" asp-action="Index">Программы</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-controller="Admission" asp-action="My">Мое заявление</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-controller="Documents" asp-action="My">Документы</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-controller="Staff" asp-action="Admissions">Все поступления</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-controller="Staff" asp-action="Managers">Менеджеры</a>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Выход</a>
+                    </li>
+                </ul>
             </div>
-        </nav>
-    </header>
-
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - ApplicantSystem
         </div>
-    </footer>
+    </nav>
+</header>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+<div class="container">
+    <main role="main" class="pb-3">
+        @RenderBody()
+    </main>
+</div>
+
+<footer class="border-top footer text-muted">
+    <div class="container">
+        &copy; 2026 - ApplicantSystem
+    </div>
+</footer>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
