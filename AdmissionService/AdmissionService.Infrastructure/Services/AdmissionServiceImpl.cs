@@ -12,6 +12,12 @@ public class AdmissionServiceImpl : IAdmissionService
     private readonly IAdmissionRepository _repository;
     private readonly IMessagePublisher _messagePublisher;
 
+    private static void EnsureAdmissionEditable(Admission admission)
+    {
+        if (admission.Status == AdmissionStatus.Closed) 
+            throw new Exception("Заявление закрыто и не может быть изменено");
+    }
+
     public AdmissionServiceImpl(IAdmissionRepository repository, IMessagePublisher messagePublisher)
     {
         _repository = repository;
@@ -63,6 +69,8 @@ public class AdmissionServiceImpl : IAdmissionService
         if (admission == null)
             throw new Exception("Сначала подайте заявление");
 
+        EnsureAdmissionEditable(admission);
+
         var existing = await _repository.GetProgramAsync(admission.Id, programId);
         if (existing != null)
             throw new Exception("Программа уже добавлена в заявление");
@@ -87,6 +95,8 @@ public class AdmissionServiceImpl : IAdmissionService
         if (admission == null)
             throw new Exception("Заявление не найдено");
 
+        EnsureAdmissionEditable(admission);
+
         var existing = await _repository.GetProgramAsync(admission.Id, programId);
         if (existing == null)
             throw new Exception("Программа не найдена в заявлении");
@@ -103,6 +113,8 @@ public class AdmissionServiceImpl : IAdmissionService
         var admission = await _repository.GetByApplicantUserIdAsync(applicantUserId);
         if (admission == null)
             throw new Exception("Заявление не найдено");
+
+        EnsureAdmissionEditable(admission);
 
         var existing = await _repository.GetProgramAsync(admission.Id, programId);
         if (existing == null)
