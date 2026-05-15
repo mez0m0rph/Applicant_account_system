@@ -13,6 +13,20 @@ public class AdmissionServiceImpl : IAdmissionService
     private readonly IAdmissionRepository _repository;
     private readonly IMessagePublisher _messagePublisher;
     private readonly int _maxPrograms;
+    private readonly IProgramCatalogClient _programCatalogClient;
+
+
+    public AdmissionServiceImpl(
+        IAdmissionRepository repository,
+        IMessagePublisher messagePublisher,
+        IConfiguration configuration,
+        IProgramCatalogClient programCatalogClient)
+    {
+        _repository = repository;
+        _messagePublisher = messagePublisher;
+        _maxPrograms = configuration.GetValue<int>("AdmissionSettings:MaxPrograms", 5);
+        _programCatalogClient = programCatalogClient;
+    }
 
     private static void EnsureAdmissionEditable(Admission admission)
     {
@@ -32,11 +46,25 @@ public class AdmissionServiceImpl : IAdmissionService
             throw new Exception("Такой приоритет уже занят другой программой");
     }
 
-    public AdmissionServiceImpl(IAdmissionRepository repository, IMessagePublisher messagePublisher, IConfiguration configuration)
+    private static string NormalizeEducationLevel(string? level)
     {
-        _repository = repository;
-        _messagePublisher = messagePublisher;
-        _maxPrograms = configuration.GetValue<int>("AdmissionSettings:MaxPrograms", 5);
+        return (level ?? string.Empty).Trim().ToLowerInvariant();
+    }
+
+    private static bool AreEducationLevelsCompatible(string existingLevel, string newLevel)
+    {
+        var left = NormalizeEducationLevel(existingLevel);
+        var right = NormalizeEducationLevel(newLevel);
+
+        if (left == right)
+            return true;
+
+        var pair = new HashSet<string> { left, right };
+
+        if (pair.SetEquals(new[] { "бакалавриат", "специалитет" }))
+            return true;
+
+        return false;
     }
 
     public async Task CreateAsync(Guid applicantUserId, string applicantEmail)
@@ -93,6 +121,20 @@ public class AdmissionServiceImpl : IAdmissionService
 
         if (currentPrograms.Any(x => x.ProgramId == programId))
             throw new Exception("Программа уже добавлена в заявление");
+        
+        var newProgram = await _programCatalogClient.GetByIdAsync(programId);
+        if (newProgram == null)
+            throw new Exception("Программа не найдена");
+
+        foreach (var selectedProgram in currentPrograms)
+        {
+            var existingProgram = await _programCatalogClient.GetByIdAsync(selectedProgram.ProgramId);
+            if (existingProgram == null)
+                continue;
+
+            if (!AreEducationLevelsCompatible(existingProgram.EducationLevel, newProgram.EducationLevel))
+                throw new Exception("Нельзя выбирать программы с несовместимыми уровнями образования");
+        }
 
         EnsurePriorityUnique(currentPrograms, programId, priority);
 

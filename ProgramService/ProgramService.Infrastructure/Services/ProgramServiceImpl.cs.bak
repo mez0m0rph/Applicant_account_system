@@ -1,0 +1,47 @@
+using ProgramService.Application.DTOs;
+using ProgramService.Application.Interfaces;
+using ProgramService.Domain.Entities;
+
+namespace ProgramService.Infrastructure.Services;
+
+public class ProgramServiceImpl : IProgramService
+{
+    private readonly IProgramRepository _repository;
+
+    public ProgramServiceImpl(IProgramRepository repository)
+    {
+        _repository = repository;
+    }
+
+    public async Task<List<ProgramDto>> GetAllAsync()
+    {
+        var items = await _repository.GetAllAsync();
+        return items.Select(Map).ToList();
+    }
+
+    public async Task<ProgramDto?> GetByIdAsync(Guid id)
+    {
+        var item = await _repository.GetByIdAsync(id);
+        return item == null ? null : Map(item);
+    }
+
+    private static ProgramDto Map(StudyProgram item)
+    {
+        return new ProgramDto
+        {
+            Id = item.Id,
+            ExternalId = item.ExternalId,
+            Code = item.Code,
+            Title = item.Title,
+            Description = item.Description,
+            BudgetPlaces = item.BudgetPlaces,
+            PaidPlaces = item.PaidPlaces,
+            Faculty = item.Faculty,
+            EducationLevel = item.EducationLevel,
+            EducationForm = item.EducationForm,
+            Language = item.Language,
+            Duration = item.Duration,
+            Degree = item.Degree
+        };
+    }
+}

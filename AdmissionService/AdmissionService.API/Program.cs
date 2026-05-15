@@ -17,6 +17,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IAdmissionRepository, AdmissionRepository>();
 builder.Services.AddScoped<IAdmissionService, AdmissionServiceImpl>();
 
+builder.Services.AddHttpClient<IProgramCatalogClient, ProgramCatalogClient>();
+
 builder.Services.AddRabbitMqMessaging(builder.Configuration);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

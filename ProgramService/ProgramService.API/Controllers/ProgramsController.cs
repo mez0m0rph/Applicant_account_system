@@ -23,6 +23,16 @@ public class ProgramsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var result = await _repository.GetByIdAsync(id);
+        if (result == null)
+            return NotFound();
+
+        return Ok(result);
+    }
+
     [HttpPost("import")]
     public async Task<IActionResult> Import()
     {

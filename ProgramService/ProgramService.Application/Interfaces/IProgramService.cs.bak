@@ -1,0 +1,9 @@
+using ProgramService.Application.DTOs;
+
+namespace ProgramService.Application.Interfaces;
+
+public interface IProgramService
+{
+    Task<List<ProgramDto>> GetAllAsync();
+    Task<ProgramDto?> GetByIdAsync(Guid id);
+}
