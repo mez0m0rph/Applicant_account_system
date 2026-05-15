@@ -8,3 +8,5 @@ public class RabbitMqOptions
     public string Password { get; set; } = "guest";
     public string QueueName { get; set; } = "notification-queue";
 }
+
+// просто параметры подключения к RabbitMQ

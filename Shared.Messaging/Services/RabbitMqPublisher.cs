@@ -1,37 +1,39 @@
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using Shared.Messaging.Interfaces;
-using Shared.Messaging.RabbitMQ;
+using Microsoft.Extensions.Configuration;
 
 namespace Shared.Messaging.Services;
 
-public class RabbitMqPublisher : IMessagePublisher
+public class RabbitMqPublisher : IMessagePublisher, IDisposable
 {
-    private readonly RabbitMqOptions _options;
+    private readonly IConnection _connection;
+    private readonly ConnectionFactory _factory;
+    private readonly string _queueName;
 
-    public RabbitMqPublisher(IOptions<RabbitMqOptions> options)
+    public RabbitMqPublisher(IConfiguration configuration)
     {
-        _options = options.Value;
+        _queueName = configuration["RabbitMq:QueueName"] ?? "notification-queue";
+
+        _factory = new ConnectionFactory
+        {
+            HostName = configuration["RabbitMq:Host"] ?? "localhost",
+            Port = int.TryParse(configuration["RabbitMq:Port"], out var port) ? port : 5672,
+            UserName = configuration["RabbitMq:UserName"] ?? "guest",
+            Password = configuration["RabbitMq:Password"] ?? "guest"
+        };
+
+        _connection = _factory.CreateConnection();
     }
 
     public Task PublishAsync<T>(T message)
     {
-        var factory = new ConnectionFactory
-        {
-            HostName = _options.HostName,
-            Port = _options.Port,
-            UserName = _options.UserName,
-            Password = _options.Password
-        };
-
-        using var connection = factory.CreateConnection();
-        using var channel = connection.CreateModel();
+        using var channel = _connection.CreateModel();
 
         channel.QueueDeclare(
-            queue: _options.QueueName,
-            durable: true,
+            queue: _queueName,
+            durable: false,
             exclusive: false,
             autoDelete: false,
             arguments: null);
@@ -39,15 +41,17 @@ public class RabbitMqPublisher : IMessagePublisher
         var json = JsonSerializer.Serialize(message);
         var body = Encoding.UTF8.GetBytes(json);
 
-        var properties = channel.CreateBasicProperties();
-        properties.Persistent = true;
-
         channel.BasicPublish(
             exchange: "",
-            routingKey: _options.QueueName,
-            basicProperties: properties,
+            routingKey: _queueName,
+            basicProperties: null,
             body: body);
 
         return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        _connection?.Dispose();
     }
 }
