@@ -84,6 +84,24 @@ public class AuthApiService : IAuthApiService
             : ApiResult<string>.Fail(content);
     }
 
+    public async Task<ApiResult<string>> ChangePasswordAsync(WebApp.Models.Account.ChangePasswordViewModel model)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Auth"];
+        var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/auth/change-password", new
+        {
+            currentPassword = model.CurrentPassword,
+            newPassword = model.NewPassword
+        });
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode
+            ? ApiResult<string>.Ok(string.IsNullOrWhiteSpace(content) ? "Пароль изменен" : content)
+            : ApiResult<string>.Fail(string.IsNullOrWhiteSpace(content) ? "Ошибка смены пароля" : content);
+    }
+
     private static Dictionary<string, string> ReadJwtPayload(string jwt)
     {
         var parts = jwt.Split('.');

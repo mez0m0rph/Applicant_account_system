@@ -19,6 +19,21 @@ public class AccountController : Controller
         return View(new LoginViewModel());
     }
 
+    [HttpGet]
+    public IActionResult ChangePassword()
+    {
+        return View(new WebApp.Models.Account.ChangePasswordViewModel());
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ChangePassword(WebApp.Models.Account.ChangePasswordViewModel model)
+    {
+        var result = await _authApiService.ChangePasswordAsync(model);
+
+        TempData["Message"] = result.Success ? "Пароль успешно изменен" : result.Error;
+        return RedirectToAction(nameof(ChangePassword));
+    }
+
     [HttpPost]
     public async Task<IActionResult> Login(LoginViewModel model)
     {

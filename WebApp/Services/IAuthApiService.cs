@@ -7,4 +7,5 @@ public interface IAuthApiService
 {
     Task<ApiResult<string>> LoginAsync(LoginViewModel model);
     Task<ApiResult<string>> RegisterAsync(RegisterViewModel model);
+    Task<ApiResult<string>> ChangePasswordAsync(WebApp.Models.Account.ChangePasswordViewModel model);
 }

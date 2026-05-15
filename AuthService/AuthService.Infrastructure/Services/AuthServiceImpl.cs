@@ -88,6 +88,7 @@ public class AuthServiceImpl : IAuthService
         var refreshToken = _jwtService.GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
         await _userRepository.UpdateAsync(user);
 
         return new AuthResponse
@@ -103,10 +104,14 @@ public class AuthServiceImpl : IAuthService
         if (user == null)
             throw new Exception("Неверный refresh token");
 
+        if (user.RefreshTokenExpiresAt == null || user.RefreshTokenExpiresAt <= DateTime.UtcNow)
+            throw new Exception("Refresh token истек");
+
         var accessToken = _jwtService.GenerateToken(user);
         var refreshToken = _jwtService.GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
         await _userRepository.UpdateAsync(user);
 
         return new AuthResponse
