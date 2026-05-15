@@ -2,6 +2,7 @@ using AdmissionService.Application.DTOs;
 using AdmissionService.Application.Interfaces;
 using AdmissionService.Domain.Entities;
 using AdmissionService.Domain.Enums;
+using Microsoft.Extensions.Configuration;
 using Shared.Contracts.Events;
 using Shared.Messaging.Interfaces;
 
@@ -11,6 +12,7 @@ public class AdmissionServiceImpl : IAdmissionService
 {
     private readonly IAdmissionRepository _repository;
     private readonly IMessagePublisher _messagePublisher;
+    private readonly int _maxPrograms;
 
     private static void EnsureAdmissionEditable(Admission admission)
     {
@@ -18,10 +20,23 @@ public class AdmissionServiceImpl : IAdmissionService
             throw new Exception("Заявление закрыто и не может быть изменено");
     }
 
-    public AdmissionServiceImpl(IAdmissionRepository repository, IMessagePublisher messagePublisher)
+    private static void EnsurePriorityValid(int priority)
+    {
+        if (priority <= 0)
+            throw new Exception("Приоритет должен быть больше 0");
+    }
+
+    private static void EnsurePriorityUnique(IEnumerable<AdmissionProgram> programs, Guid programId, int priority)
+    {
+        if (programs.Any(x => x.ProgramId != programId && x.Priority == priority))
+            throw new Exception("Такой приоритет уже занят другой программой");
+    }
+
+    public AdmissionServiceImpl(IAdmissionRepository repository, IMessagePublisher messagePublisher, IConfiguration configuration)
     {
         _repository = repository;
         _messagePublisher = messagePublisher;
+        _maxPrograms = configuration.GetValue<int>("AdmissionSettings:MaxPrograms", 5);
     }
 
     public async Task CreateAsync(Guid applicantUserId, string applicantEmail)
@@ -70,10 +85,16 @@ public class AdmissionServiceImpl : IAdmissionService
             throw new Exception("Сначала подайте заявление");
 
         EnsureAdmissionEditable(admission);
+        EnsurePriorityValid(priority);
 
-        var existing = await _repository.GetProgramAsync(admission.Id, programId);
-        if (existing != null)
+        var currentPrograms = await _repository.GetProgramsByAdmissionIdAsync(admission.Id);
+        if (currentPrograms.Count >= _maxPrograms) 
+            throw new Exception($"Нельзя выбрать больше {_maxPrograms} программ");
+
+        if (currentPrograms.Any(x => x.ProgramId == programId))
             throw new Exception("Программа уже добавлена в заявление");
+
+        EnsurePriorityUnique(currentPrograms, programId, priority);
 
         var item = new AdmissionProgram
         {
@@ -96,10 +117,14 @@ public class AdmissionServiceImpl : IAdmissionService
             throw new Exception("Заявление не найдено");
 
         EnsureAdmissionEditable(admission);
+        EnsurePriorityValid(priority);
 
         var existing = await _repository.GetProgramAsync(admission.Id, programId);
         if (existing == null)
             throw new Exception("Программа не найдена в заявлении");
+
+        var currentPrograms = await _repository.GetProgramsByAdmissionIdAsync(admission.Id);
+        EnsurePriorityUnique(currentPrograms, programId, priority);
 
         existing.Priority = priority;
         await _repository.UpdateProgramAsync(existing);
