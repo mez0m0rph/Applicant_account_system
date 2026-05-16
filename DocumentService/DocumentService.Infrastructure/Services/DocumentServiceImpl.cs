@@ -70,6 +70,7 @@ public class DocumentServiceImpl : IDocumentService
             BirthPlace = request.BirthPlace ?? string.Empty,
             IssueDate = normalizedIssueDate,
             EducationDocumentName = request.EducationDocumentName ?? string.Empty,
+            EducationLevel = request.EducationLevel ?? string.Empty,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -114,6 +115,7 @@ public class DocumentServiceImpl : IDocumentService
                 BirthPlace = document.BirthPlace ?? string.Empty,
                 IssueDate = document.IssueDate,
                 EducationDocumentName = document.EducationDocumentName ?? string.Empty,
+                EducationLevel = document.EducationLevel ?? string.Empty,
                 CreatedAt = document.CreatedAt
             });
         }

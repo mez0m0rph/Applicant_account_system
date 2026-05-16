@@ -2,7 +2,6 @@
 @{
     ViewData["Title"] = "Загрузить документ";
 }
-
 <h2>Загрузить документ</h2>
 
 @if (TempData["Message"] != null)
@@ -49,6 +48,16 @@
         <input asp-for="EducationDocumentName" class="form-control" />
     </div>
 
-    <button type="submit" class="btn btn-success">Загрузить</button>
-    <a asp-action="My" class="btn btn-secondary">Назад</a>
+    <div class="mb-3">
+        <label class="form-label">Уровень образования документа</label>
+        <select asp-for="EducationLevel" class="form-control">
+            <option value="">Не указано</option>
+            <option value="Бакалавриат">Бакалавриат</option>
+            <option value="Специалитет">Специалитет</option>
+            <option value="Магистратура">Магистратура</option>
+            <option value="Аспирантура">Аспирантура</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Загрузить</button>
 </form>

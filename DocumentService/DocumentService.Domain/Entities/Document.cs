@@ -14,4 +14,5 @@ public class Document
     public DateTime? IssueDate { get; set; }
     public string? EducationDocumentName { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string? EducationLevel { get; set; }
 }

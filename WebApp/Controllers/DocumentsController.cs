@@ -48,7 +48,8 @@ public class DocumentsController : Controller
             IssuedBy = model.IssuedBy,
             BirthPlace = model.BirthPlace,
             IssueDate = model.IssueDate,
-            EducationDocumentName = model.EducationDocumentName
+            EducationDocumentName = model.EducationDocumentName,
+            EducationLevel = model.EducationLevel
         };
 
         var result = await _documentApiService.UploadAsync(apiModel);

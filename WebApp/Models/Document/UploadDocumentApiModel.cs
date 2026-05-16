@@ -11,4 +11,5 @@ public class UploadDocumentApiModel
     public string? BirthPlace { get; set; }
     public DateTime? IssueDate { get; set; }
     public string? EducationDocumentName { get; set; }
+    public string? EducationLevel { get; set; }
 }
