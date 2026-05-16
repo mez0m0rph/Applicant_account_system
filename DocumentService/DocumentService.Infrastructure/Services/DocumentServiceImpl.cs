@@ -11,15 +11,18 @@ public class DocumentServiceImpl : IDocumentService
     private readonly IDocumentRepository _repository;
     private readonly IMessagePublisher _messagePublisher;
     private readonly IFileStorageService _fileStorageService;
+    private readonly IAdmissionCatalogClient _admissionCatalogClient;
 
     public DocumentServiceImpl(
         IDocumentRepository repository,
         IMessagePublisher messagePublisher,
-        IFileStorageService fileStorageService)
+        IFileStorageService fileStorageService,
+        IAdmissionCatalogClient admissionCatalogClient)
     {
         _repository = repository;
         _messagePublisher = messagePublisher;
         _fileStorageService = fileStorageService;
+        _admissionCatalogClient = admissionCatalogClient;
     }
 
     private static DateTime NormalizeUtc(DateTime value)
@@ -32,8 +35,21 @@ public class DocumentServiceImpl : IDocumentService
         };
     }
 
+    private async Task EnsureDocumentsEditableAsync(Guid applicantUserId)
+    {
+        var admission = await _admissionCatalogClient.GetByApplicantUserIdAsync(applicantUserId);
+
+        if (admission != null &&
+            string.Equals(admission.Status, "Closed", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new Exception("Нельзя изменять документы, когда заявление закрыто");
+        }
+    }
+
     public async Task UploadAsync(Guid applicantUserId, string applicantEmail, UploadDocumentRequest request)
     {
+        await EnsureDocumentsEditableAsync(applicantUserId);
+
         if (string.IsNullOrWhiteSpace(request.FileContentBase64))
             throw new Exception("Файл не передан");
 

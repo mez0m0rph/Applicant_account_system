@@ -20,6 +20,8 @@ builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<IDocumentService, DocumentServiceImpl>();
 builder.Services.AddScoped<IFileStorageService, MinioFileStorageService>();
 
+builder.Services.AddHttpClient<IAdmissionCatalogClient, AdmissionCatalogClient>();
+
 builder.Services.AddRabbitMqMessaging(builder.Configuration);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -8,10 +8,14 @@ namespace ApplicantService.Infrastructure.Services;
 public class ApplicantServiceImpl : IApplicantService
 {
     private readonly IApplicantRepository _repository;
+    private readonly IAdmissionCatalogClient _admissionCatalogClient;
 
-    public ApplicantServiceImpl(IApplicantRepository repository)
+    public ApplicantServiceImpl(
+        IApplicantRepository repository,
+        IAdmissionCatalogClient admissionCatalogClient)
     {
         _repository = repository;
+        _admissionCatalogClient = admissionCatalogClient;
     }
 
     private static DateTime NormalizeUtc(DateTime value)
@@ -24,8 +28,21 @@ public class ApplicantServiceImpl : IApplicantService
         };
     }
 
+    private async Task EnsureApplicantEditableAsync(Guid userId)
+    {
+        var admission = await _admissionCatalogClient.GetMyAsync(userId);
+
+        if (admission != null &&
+            string.Equals(admission.Status, "Closed", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new Exception("Нельзя изменять личные данные, когда заявление закрыто");
+        }
+    }
+
     public async Task CreateAsync(Guid userId, CreateApplicantRequest request)
     {
+        await EnsureApplicantEditableAsync(userId);
+
         var existing = await _repository.GetByUserIdAsync(userId);
         if (existing != null)
             throw new Exception("Профиль уже существует");
@@ -66,6 +83,8 @@ public class ApplicantServiceImpl : IApplicantService
 
     public async Task UpdateAsync(Guid userId, UpdateApplicantRequest request)
     {
+        await EnsureApplicantEditableAsync(userId);
+
         var applicant = await _repository.GetByUserIdAsync(userId);
 
         if (applicant == null)

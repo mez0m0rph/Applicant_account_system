@@ -45,4 +45,12 @@ public class DocumentsController : ControllerBase
         var result = await _service.GetMyDocumentsAsync(applicantUserId);
         return Ok(result);
     }
+
+    [AllowAnonymous]
+    [HttpGet("applicant/{applicantUserId:guid}")]
+    public async Task<IActionResult> GetByApplicantUserId(Guid applicantUserId)
+    {
+        var result = await _service.GetMyDocumentsAsync(applicantUserId);
+        return Ok(result);
+    }
 }

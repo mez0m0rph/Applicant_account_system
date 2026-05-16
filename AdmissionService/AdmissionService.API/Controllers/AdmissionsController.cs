@@ -55,6 +55,17 @@ public class AdmissionsController : ControllerBase
         return Ok(await _service.GetAllAsync());
     }
 
+    [AllowAnonymous]
+    [HttpGet("applicant/{applicantUserId:guid}")]
+    public async Task<IActionResult> GetByApplicantUserId(Guid applicantUserId)
+    {
+        var result = await _service.GetMyAsync(applicantUserId);
+        if (result == null)
+            return NotFound();
+
+        return Ok(result);
+    }
+
     [HttpPost("my/programs")]
     public async Task<IActionResult> AddProgram([FromBody] AddProgramToAdmissionRequest request)
     {

@@ -14,18 +14,21 @@ public class AdmissionServiceImpl : IAdmissionService
     private readonly IMessagePublisher _messagePublisher;
     private readonly int _maxPrograms;
     private readonly IProgramCatalogClient _programCatalogClient;
+    private readonly IDocumentCatalogClient _documentCatalogClient;
 
 
     public AdmissionServiceImpl(
         IAdmissionRepository repository,
         IMessagePublisher messagePublisher,
         IConfiguration configuration,
-        IProgramCatalogClient programCatalogClient)
+        IProgramCatalogClient programCatalogClient,
+        IDocumentCatalogClient documentCatalogClient)
     {
         _repository = repository;
         _messagePublisher = messagePublisher;
         _maxPrograms = configuration.GetValue<int>("AdmissionSettings:MaxPrograms", 5);
         _programCatalogClient = programCatalogClient;
+        _documentCatalogClient = documentCatalogClient;
     }
 
     private static void EnsureAdmissionEditable(Admission admission)
@@ -65,6 +68,41 @@ public class AdmissionServiceImpl : IAdmissionService
             return true;
 
         return false;
+    }
+
+    private static bool IsProgramAllowedByEducationDocument(string documentLevel, string programLevel)
+    {
+        var doc = NormalizeEducationLevel(documentLevel);
+        var program = NormalizeEducationLevel(programLevel);
+
+        if (string.IsNullOrWhiteSpace(doc) || string.IsNullOrWhiteSpace(program))
+            return true;
+
+        if (doc == program)
+            return true;
+
+        return doc switch
+        {
+            "бакалавриат" => program is "бакалавриат" or "специалитет" or "магистратура",
+            "специалитет" => program is "специалитет" or "магистратура" or "аспирантура",
+            "магистратура" => program is "магистратура" or "аспирантура",
+            "аспирантура" => program is "аспирантура",
+            _ => true
+        };
+    }
+
+    private async Task EnsureProgramAllowedByEducationDocumentAsync(Guid applicantUserId, string newProgramEducationLevel)
+    {
+        var documents = await _documentCatalogClient.GetByApplicantUserIdAsync(applicantUserId);
+
+        var educationDocument = documents.FirstOrDefault(d =>
+            string.Equals(d.Type, "EducationDocument", StringComparison.OrdinalIgnoreCase));
+
+        if (educationDocument == null || string.IsNullOrWhiteSpace(educationDocument.EducationLevel))
+            return;
+
+        if (!IsProgramAllowedByEducationDocument(educationDocument.EducationLevel, newProgramEducationLevel))
+            throw new Exception("Выбранная программа не соответствует уровню документа об образовании");
     }
 
     public async Task CreateAsync(Guid applicantUserId, string applicantEmail)
@@ -125,6 +163,8 @@ public class AdmissionServiceImpl : IAdmissionService
         var newProgram = await _programCatalogClient.GetByIdAsync(programId);
         if (newProgram == null)
             throw new Exception("Программа не найдена");
+
+        await EnsureProgramAllowedByEducationDocumentAsync(applicantUserId, newProgram.EducationLevel);
 
         foreach (var selectedProgram in currentPrograms)
         {
