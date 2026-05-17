@@ -13,7 +13,7 @@
 
 <form method="get" class="row g-3 mb-4">
     <div class="col-md-3">
-        <label class="form-label">Поиск по email</label>
+        <label class="form-label">Поиск по email или ФИО</label>
         <input type="text" name="Search" value="@Model.Filter.Search" class="form-control" />
     </div>
 
@@ -87,7 +87,8 @@ else
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
-                <th>ApplicantEmail</th>
+                <th>ФИО</th>
+                <th>Email</th>
                 <th>Status</th>
                 <th>Programs</th>
                 <th>Менеджер</th>
@@ -102,6 +103,7 @@ else
         @foreach (var a in admissions)
         {
             <tr>
+                <td>@a.ApplicantFullName</td>
                 <td>@a.ApplicantEmail</td>
                 <td>@a.Status</td>
                 <td>

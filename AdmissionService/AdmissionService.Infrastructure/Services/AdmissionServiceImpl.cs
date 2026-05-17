@@ -1,4 +1,5 @@
 using AdmissionService.Application.DTOs;
+using AdmissionService.Application.DTOs.External;
 using AdmissionService.Application.Interfaces;
 using AdmissionService.Domain.Entities;
 using AdmissionService.Domain.Enums;
@@ -15,19 +16,22 @@ public class AdmissionServiceImpl : IAdmissionService
     private readonly int _maxPrograms;
     private readonly IProgramCatalogClient _programCatalogClient;
     private readonly IDocumentCatalogClient _documentCatalogClient;
+    private readonly IApplicantCatalogClient _applicantCatalogClient;
 
     public AdmissionServiceImpl(
         IAdmissionRepository repository,
         IMessagePublisher messagePublisher,
         IConfiguration configuration,
         IProgramCatalogClient programCatalogClient,
-        IDocumentCatalogClient documentCatalogClient)
+        IDocumentCatalogClient documentCatalogClient,
+        IApplicantCatalogClient applicantCatalogClient)
     {
         _repository = repository;
         _messagePublisher = messagePublisher;
         _maxPrograms = configuration.GetValue<int>("AdmissionSettings:MaxPrograms", 5);
         _programCatalogClient = programCatalogClient;
         _documentCatalogClient = documentCatalogClient;
+        _applicantCatalogClient = applicantCatalogClient;
     }
 
     private static void EnsureAdmissionEditable(Admission admission)
@@ -126,6 +130,12 @@ public class AdmissionServiceImpl : IAdmissionService
             throw new Exception("Выбранная программа не соответствует уровню документа об образовании");
     }
 
+    private async Task<string> GetApplicantFullNameAsync(Guid applicantUserId)
+    {
+        var applicant = await _applicantCatalogClient.GetByUserIdAsync(applicantUserId);
+        return applicant?.FullName ?? string.Empty;
+    }
+
     public async Task CreateAsync(Guid applicantUserId, string applicantEmail)
     {
         var existing = await _repository.GetByApplicantUserIdAsync(applicantUserId);
@@ -173,14 +183,22 @@ public class AdmissionServiceImpl : IAdmissionService
         if (query.OnlyMine && currentUserId.HasValue)
             query.AssignedManagerUserId = currentUserId.Value;
 
-        if (IsManagerRole(currentRole) && !IsPrivilegedRole(currentRole) && currentUserId.HasValue)
-            query.AssignedManagerUserId = currentUserId.Value;
-
         var (items, totalCount) = await _repository.GetPagedAsync(query);
 
         var mapped = new List<AdmissionResponse>();
         foreach (var item in items)
             mapped.Add(await MapAsync(item));
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var search = query.Search.Trim().ToLowerInvariant();
+            mapped = mapped.Where(x =>
+                    x.ApplicantEmail.ToLowerInvariant().Contains(search) ||
+                    x.ApplicantFullName.ToLowerInvariant().Contains(search))
+                .ToList();
+
+            totalCount = mapped.Count;
+        }
 
         return new PagedAdmissionsResponse
         {
@@ -354,12 +372,14 @@ public class AdmissionServiceImpl : IAdmissionService
     private async Task<AdmissionResponse> MapAsync(Admission admission)
     {
         var programs = await _repository.GetProgramsByAdmissionIdAsync(admission.Id);
+        var applicantFullName = await GetApplicantFullNameAsync(admission.ApplicantUserId);
 
         return new AdmissionResponse
         {
             Id = admission.Id,
             ApplicantUserId = admission.ApplicantUserId,
             ApplicantEmail = admission.ApplicantEmail,
+            ApplicantFullName = applicantFullName,
             Status = admission.Status.ToString(),
             AssignedManagerUserId = admission.AssignedManagerUserId,
             CreatedAt = admission.CreatedAt,

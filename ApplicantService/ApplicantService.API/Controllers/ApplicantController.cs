@@ -45,6 +45,17 @@ public class ApplicantController : ControllerBase
         return Ok(result);
     }
 
+    [AllowAnonymous]
+    [HttpGet("{userId:guid}")]
+    public async Task<IActionResult> GetByUserId(Guid userId)
+    {
+        var result = await _service.GetMyAsync(userId);
+        if (result == null)
+            return NotFound();
+
+        return Ok(result);
+    }
+
     [HttpPut("me")]
     public async Task<IActionResult> Update([FromBody] UpdateApplicantRequest request)
     {

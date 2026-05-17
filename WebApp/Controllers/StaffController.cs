@@ -15,9 +15,30 @@ public class StaffController : Controller
         _staffApiService = staffApiService;
     }
 
+    private string? CurrentRole => HttpContext.Session.GetString("UserRole");
+
+    private bool IsStaff()
+    {
+        return CurrentRole is "Manager" or "MainManager" or "Admin";
+    }
+
+    private bool IsMainManagerOrAdmin()
+    {
+        return CurrentRole is "MainManager" or "Admin";
+    }
+
+    private IActionResult ForbiddenRedirect()
+    {
+        TempData["Message"] = "У вас нет доступа к этому разделу";
+        return RedirectToAction("Index", "Home");
+    }
+
     [HttpGet]
     public async Task<IActionResult> Admissions([FromQuery] StaffAdmissionsFilterViewModel filter)
     {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
         if (filter.Page < 1)
             filter.Page = 1;
 
@@ -46,6 +67,9 @@ public class StaffController : Controller
     [HttpGet]
     public async Task<IActionResult> Managers()
     {
+        if (!IsMainManagerOrAdmin())
+            return ForbiddenRedirect();
+
         var result = await _staffApiService.GetManagersAsync();
 
         if (!result.Success)
@@ -60,6 +84,9 @@ public class StaffController : Controller
     [HttpPost]
     public async Task<IActionResult> AssignManager(Guid admissionId, Guid managerUserId)
     {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
         var result = await _staffApiService.AssignManagerAsync(new AssignManagerViewModel
         {
             AdmissionId = admissionId,
@@ -73,6 +100,9 @@ public class StaffController : Controller
     [HttpPost]
     public async Task<IActionResult> ReleaseManager(Guid admissionId)
     {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
         var result = await _staffApiService.ReleaseManagerAsync(admissionId);
         TempData["Message"] = result.Success ? "Менеджер снят" : result.Error;
         return RedirectToAction("Admissions");
@@ -81,6 +111,9 @@ public class StaffController : Controller
     [HttpPost]
     public async Task<IActionResult> UpdateAdmissionStatus(Guid admissionId, string status)
     {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
         var result = await _staffApiService.UpdateAdmissionStatusAsync(new UpdateAdmissionStatusViewModel
         {
             AdmissionId = admissionId,

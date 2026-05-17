@@ -8,6 +8,7 @@
     var isMainManager = userRole == "MainManager";
     var isAdmin = userRole == "Admin";
     var isStaff = isManager || isMainManager || isAdmin;
+    var canManageManagers = isMainManager || isAdmin;
 }
 <!DOCTYPE html>
 <html lang="ru">
@@ -47,6 +48,10 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Staff" asp-action="Admissions">Все поступления</a>
                         </li>
+                    }
+
+                    @if (isAuthenticated && canManageManagers)
+                    {
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Staff" asp-action="Managers">Менеджеры</a>
                         </li>
