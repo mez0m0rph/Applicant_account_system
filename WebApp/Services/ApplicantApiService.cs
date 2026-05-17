@@ -77,4 +77,17 @@ public class ApplicantApiService : IApplicantApiService
             ? ApiResult<string>.Ok(content)
             : ApiResult<string>.Fail(content);
     }
+
+    public async Task<ApiResult<string>> UpdateByUserIdAsync(Guid userId, ProfileViewModel model)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Applicant"];
+        var response = await _httpClient.PutAsJsonAsync($"{baseUrl}/applicant/{userId}", model);
+        var content = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode
+            ? ApiResult<string>.Ok(content)
+            : ApiResult<string>.Fail(content);
+    }
 }

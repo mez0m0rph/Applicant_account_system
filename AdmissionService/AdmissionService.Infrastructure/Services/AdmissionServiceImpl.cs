@@ -299,6 +299,36 @@ public class AdmissionServiceImpl : IAdmissionService
         await _repository.UpdateAdmissionAsync(admission);
     }
 
+    public async Task AddProgramForStaffAsync(Guid admissionId, Guid programId, int priority, Guid? currentUserId, string? currentRole)
+    {
+        var admission = await _repository.GetByIdAsync(admissionId);
+        if (admission == null)
+            throw new Exception("Заявление не найдено");
+
+        EnsureCanManageAdmission(admission, currentUserId, currentRole);
+        await AddProgramAsync(admission.ApplicantUserId, programId, priority);
+    }
+
+    public async Task UpdateProgramPriorityForStaffAsync(Guid admissionId, Guid programId, int priority, Guid? currentUserId, string? currentRole)
+    {
+        var admission = await _repository.GetByIdAsync(admissionId);
+        if (admission == null)
+            throw new Exception("Заявление не найдено");
+
+        EnsureCanManageAdmission(admission, currentUserId, currentRole);
+        await UpdateProgramPriorityAsync(admission.ApplicantUserId, programId, priority);
+    }
+
+    public async Task RemoveProgramForStaffAsync(Guid admissionId, Guid programId, Guid? currentUserId, string? currentRole)
+    {
+        var admission = await _repository.GetByIdAsync(admissionId);
+        if (admission == null)
+            throw new Exception("Заявление не найдено");
+
+        EnsureCanManageAdmission(admission, currentUserId, currentRole);
+        await RemoveProgramAsync(admission.ApplicantUserId, programId);
+    }
+
     public async Task AssignManagerAsync(Guid admissionId, Guid managerUserId, string managerEmail, Guid? currentUserId, string? currentRole)
     {
         var admission = await _repository.GetByIdAsync(admissionId);

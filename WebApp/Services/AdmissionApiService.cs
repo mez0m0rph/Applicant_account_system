@@ -147,6 +147,54 @@ public class AdmissionApiService : IAdmissionApiService
             : ApiResult<string>.Fail(ReadMessage(content, $"Ошибка удаления программы. HTTP {(int)response.StatusCode}"));
     }
 
+    public async Task<ApiResult<string>> AddProgramForStaffAsync(Guid admissionId, Guid programId, int priority)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Admission"];
+        var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/admissions/{admissionId}/programs", new
+        {
+            programId,
+            priority
+        });
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode
+            ? ApiResult<string>.Ok(ReadMessage(content, "Программа добавлена в заявление"))
+            : ApiResult<string>.Fail(ReadMessage(content, $"Ошибка добавления программы. HTTP {(int)response.StatusCode}"));
+    }
+
+    public async Task<ApiResult<string>> UpdateProgramPriorityForStaffAsync(Guid admissionId, Guid programId, int priority)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Admission"];
+        var response = await _httpClient.PutAsJsonAsync($"{baseUrl}/admissions/{admissionId}/programs/{programId}/priority", new
+        {
+            priority
+        });
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode
+            ? ApiResult<string>.Ok(ReadMessage(content, "Приоритет обновлен"))
+            : ApiResult<string>.Fail(ReadMessage(content, $"Ошибка изменения приоритета. HTTP {(int)response.StatusCode}"));
+    }
+
+    public async Task<ApiResult<string>> RemoveProgramForStaffAsync(Guid admissionId, Guid programId)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Admission"];
+        var response = await _httpClient.DeleteAsync($"{baseUrl}/admissions/{admissionId}/programs/{programId}");
+        var content = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode
+            ? ApiResult<string>.Ok(ReadMessage(content, "Программа удалена из заявления"))
+            : ApiResult<string>.Fail(ReadMessage(content, $"Ошибка удаления программы. HTTP {(int)response.StatusCode}"));
+    }
+
     private static string ReadMessage(string? content, string fallback)
     {
         if (string.IsNullOrWhiteSpace(content))

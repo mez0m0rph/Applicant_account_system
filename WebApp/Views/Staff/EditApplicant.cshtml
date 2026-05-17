@@ -1,0 +1,54 @@
+@model WebApp.Models.Applicant.ProfileViewModel
+@{
+    ViewData["Title"] = "Редактирование профиля абитуриента";
+}
+
+<h2>Редактирование профиля абитуриента</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
+<form asp-action="EditApplicant" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="UserId" />
+    <input type="hidden" asp-for="HasProfile" />
+
+    <div class="mb-3">
+        <label asp-for="FullName" class="form-label">ФИО</label>
+        <input asp-for="FullName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label">Email</label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Phone" class="form-label">Телефон</label>
+        <input asp-for="Phone" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="BirthDate" class="form-label">Дата рождения</label>
+        <input asp-for="BirthDate" type="datetime-local" class="form-control"
+               value="@(Model.BirthDate == default ? "" : Model.BirthDate.ToString("yyyy-MM-ddTHH:mm"))" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Gender" class="form-label">Пол</label>
+        <select asp-for="Gender" class="form-control">
+            <option value="0">Мужской</option>
+            <option value="1">Женский</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Citizenship" class="form-label">Гражданство</label>
+        <input asp-for="Citizenship" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <a asp-action="Details" asp-route-applicantUserId="@Model.UserId" class="btn btn-secondary">Назад</a>
+</form>

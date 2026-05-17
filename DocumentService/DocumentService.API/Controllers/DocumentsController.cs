@@ -34,6 +34,16 @@ public class DocumentsController : ControllerBase
         return Ok("Документ загружен");
     }
 
+    [Authorize(Roles = "Manager,MainManager,Admin")]
+    [HttpPost("applicant/{applicantUserId:guid}")]
+    public async Task<IActionResult> UploadForApplicant(Guid applicantUserId, [FromBody] UploadDocumentRequest request)
+    {
+        var email = User.FindFirst(ClaimTypes.Email)?.Value ?? User.FindFirst("email")?.Value ?? "staff@local";
+
+        await _service.UploadAsync(applicantUserId, email, request);
+        return Ok("Документ загружен");
+    }
+
     [HttpGet("my")]
     public async Task<IActionResult> GetMy()
     {
@@ -46,6 +56,14 @@ public class DocumentsController : ControllerBase
         return Ok(result);
     }
 
+    [AllowAnonymous]
+    [HttpGet("applicant/{applicantUserId:guid}")]
+    public async Task<IActionResult> GetByApplicant(Guid applicantUserId)
+    {
+        var result = await _service.GetMyDocumentsAsync(applicantUserId);
+        return Ok(result);
+    }
+
     [HttpGet("my/{documentId:guid}/download")]
     public async Task<IActionResult> Download(Guid documentId)
     {
@@ -54,32 +72,16 @@ public class DocumentsController : ControllerBase
         if (!Guid.TryParse(userIdClaim, out var applicantUserId))
             return Unauthorized("Некорректный user id");
 
-        var result = await _service.DownloadAsync(applicantUserId, documentId);
-        return File(result.Content, result.ContentType, result.FileName);
+        var file = await _service.DownloadAsync(applicantUserId, documentId);
+        return File(file.Content, file.ContentType, file.FileName);
     }
 
-    [HttpPut("my/{documentId:guid}")]
-    public async Task<IActionResult> Update(Guid documentId, [FromBody] UpdateDocumentRequest request)
+    [Authorize(Roles = "Manager,MainManager,Admin")]
+    [HttpGet("applicant/{applicantUserId:guid}/{documentId:guid}/download")]
+    public async Task<IActionResult> DownloadForApplicant(Guid applicantUserId, Guid documentId)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
-            return Unauthorized("Некорректный user id");
-
-        await _service.UpdateAsync(applicantUserId, documentId, request);
-        return Ok("Документ обновлен");
-    }
-
-    [HttpPut("my/{documentId:guid}/file")]
-    public async Task<IActionResult> ReplaceFile(Guid documentId, [FromBody] ReplaceDocumentFileRequest request)
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
-            return Unauthorized("Некорректный user id");
-
-        await _service.ReplaceFileAsync(applicantUserId, documentId, request);
-        return Ok("Скан документа заменен");
+        var file = await _service.DownloadAsync(applicantUserId, documentId);
+        return File(file.Content, file.ContentType, file.FileName);
     }
 
     [HttpDelete("my/{documentId:guid}")]
@@ -94,11 +96,51 @@ public class DocumentsController : ControllerBase
         return Ok("Документ удален");
     }
 
-    [AllowAnonymous]
-    [HttpGet("applicant/{applicantUserId:guid}")]
-    public async Task<IActionResult> GetByApplicantUserId(Guid applicantUserId)
+    [Authorize(Roles = "Manager,MainManager,Admin")]
+    [HttpDelete("applicant/{applicantUserId:guid}/{documentId:guid}")]
+    public async Task<IActionResult> DeleteForApplicant(Guid applicantUserId, Guid documentId)
     {
-        var result = await _service.GetMyDocumentsAsync(applicantUserId);
-        return Ok(result);
+        await _service.DeleteAsync(applicantUserId, documentId);
+        return Ok("Документ удален");
+    }
+
+    [HttpPut("my/{documentId:guid}")]
+    public async Task<IActionResult> Update(Guid documentId, [FromBody] UpdateDocumentRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+            return Unauthorized("Некорректный user id");
+
+        await _service.UpdateAsync(applicantUserId, documentId, request);
+        return Ok("Документ обновлен");
+    }
+
+    [Authorize(Roles = "Manager,MainManager,Admin")]
+    [HttpPut("applicant/{applicantUserId:guid}/{documentId:guid}")]
+    public async Task<IActionResult> UpdateForApplicant(Guid applicantUserId, Guid documentId, [FromBody] UpdateDocumentRequest request)
+    {
+        await _service.UpdateAsync(applicantUserId, documentId, request);
+        return Ok("Документ обновлен");
+    }
+
+    [HttpPut("my/{documentId:guid}/file")]
+    public async Task<IActionResult> ReplaceFile(Guid documentId, [FromBody] ReplaceDocumentFileRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+            return Unauthorized("Некорректный user id");
+
+        await _service.ReplaceFileAsync(applicantUserId, documentId, request);
+        return Ok("Файл документа заменен");
+    }
+
+    [Authorize(Roles = "Manager,MainManager,Admin")]
+    [HttpPut("applicant/{applicantUserId:guid}/{documentId:guid}/file")]
+    public async Task<IActionResult> ReplaceFileForApplicant(Guid applicantUserId, Guid documentId, [FromBody] ReplaceDocumentFileRequest request)
+    {
+        await _service.ReplaceFileAsync(applicantUserId, documentId, request);
+        return Ok("Файл документа заменен");
     }
 }

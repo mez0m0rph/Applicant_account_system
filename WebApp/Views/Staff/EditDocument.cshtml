@@ -1,0 +1,53 @@
+@model WebApp.Models.Document.UpdateDocumentViewModel
+@{
+    ViewData["Title"] = "Редактирование документа";
+    var applicantUserId = (Guid)ViewBag.ApplicantUserId;
+}
+
+<h2>Редактирование документа</h2>
+
+<form asp-action="EditDocument" method="post">
+    <input type="hidden" name="applicantUserId" value="@applicantUserId" />
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="Type" class="form-label">Тип</label>
+        <select asp-for="Type" class="form-control">
+            <option value="0">Passport</option>
+            <option value="1">EducationDocument</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="SeriesNumber" class="form-label">Серия/номер</label>
+        <input asp-for="SeriesNumber" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="IssuedBy" class="form-label">Кем выдан</label>
+        <input asp-for="IssuedBy" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="BirthPlace" class="form-label">Место рождения</label>
+        <input asp-for="BirthPlace" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="IssueDate" class="form-label">Дата выдачи</label>
+        <input asp-for="IssueDate" type="datetime-local" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="EducationDocumentName" class="form-label">Документ об образовании</label>
+        <input asp-for="EducationDocumentName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="EducationLevel" class="form-label">Уровень образования</label>
+        <input asp-for="EducationLevel" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <a asp-action="Details" asp-route-applicantUserId="@applicantUserId" class="btn btn-secondary">Назад</a>
+</form>

@@ -147,6 +147,30 @@ public class AdmissionsController : ControllerBase
     }
 
     [Authorize(Roles = "Manager,MainManager,Admin")]
+    [HttpPost("{id:guid}/programs")]
+    public async Task<IActionResult> AddProgramForStaff(Guid id, [FromBody] AddProgramToAdmissionRequest request)
+    {
+        await _service.AddProgramForStaffAsync(id, request.ProgramId, request.Priority, GetCurrentUserId(), GetCurrentRole());
+        return Ok("Программа добавлена в заявление");
+    }
+
+    [Authorize(Roles = "Manager,MainManager,Admin")]
+    [HttpPut("{id:guid}/programs/{programId:guid}/priority")]
+    public async Task<IActionResult> UpdatePriorityForStaff(Guid id, Guid programId, [FromBody] UpdateAdmissionProgramPriorityRequest request)
+    {
+        await _service.UpdateProgramPriorityForStaffAsync(id, programId, request.Priority, GetCurrentUserId(), GetCurrentRole());
+        return Ok("Приоритет обновлен");
+    }
+
+    [Authorize(Roles = "Manager,MainManager,Admin")]
+    [HttpDelete("{id:guid}/programs/{programId:guid}")]
+    public async Task<IActionResult> RemoveProgramForStaff(Guid id, Guid programId)
+    {
+        await _service.RemoveProgramForStaffAsync(id, programId, GetCurrentUserId(), GetCurrentRole());
+        return Ok("Программа удалена из заявления");
+    }
+
+    [Authorize(Roles = "Manager,MainManager,Admin")]
     [HttpPost("{id:guid}/assign-manager")]
     public async Task<IActionResult> AssignManager(Guid id, [FromBody] AssignManagerRequest request)
     {

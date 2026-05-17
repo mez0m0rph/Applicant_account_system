@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WebApp.Models.Admission;
+using WebApp.Models.Applicant;
+using WebApp.Models.Document;
 using WebApp.Models.Manager;
 using WebApp.Models.Program;
 using WebApp.Models.Staff;
@@ -101,7 +103,7 @@ public class StaffController : Controller
         {
             ApplicantUserId = applicantUserId,
             Profile = profileResult.Success ? profileResult.Data : null,
-            Documents = documentsResult.Success ? (documentsResult.Data ?? new List<WebApp.Models.Document.DocumentViewModel>()) : new(),
+            Documents = documentsResult.Success ? (documentsResult.Data ?? new List<DocumentViewModel>()) : new(),
             Admission = admissionResult.Success ? admissionResult.Data : null
         };
 
@@ -115,6 +117,222 @@ public class StaffController : Controller
             TempData["Message"] = admissionResult.Error;
 
         return View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> EditApplicant(Guid applicantUserId)
+    {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
+        var result = await _applicantApiService.GetByUserIdAsync(applicantUserId);
+
+        if (!result.Success || result.Data == null)
+        {
+            TempData["Message"] = result.Error ?? "Профиль абитуриента не найден";
+            return RedirectToAction("Details", new { applicantUserId });
+        }
+
+        return View(result.Data);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> EditApplicant(ProfileViewModel model)
+    {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
+        var result = await _applicantApiService.UpdateByUserIdAsync(model.UserId, model);
+        TempData["Message"] = result.Success ? "Профиль абитуриента обновлен" : result.Error;
+
+        return RedirectToAction("Details", new { applicantUserId = model.UserId });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> EditDocument(Guid applicantUserId, Guid documentId)
+    {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
+        var result = await _documentApiService.GetByApplicantUserIdAsync(applicantUserId);
+        var document = result.Data?.FirstOrDefault(x => x.Id == documentId);
+
+        if (document == null)
+        {
+            TempData["Message"] = "Документ не найден";
+            return RedirectToAction("Details", new { applicantUserId });
+        }
+
+        ViewBag.ApplicantUserId = applicantUserId;
+
+        return View(new UpdateDocumentViewModel
+        {
+            Id = document.Id,
+            Type = document.Type == "EducationDocument" ? 1 : 0,
+            SeriesNumber = document.SeriesNumber,
+            IssuedBy = document.IssuedBy,
+            BirthPlace = document.BirthPlace,
+            IssueDate = document.IssueDate,
+            EducationDocumentName = document.EducationDocumentName,
+            EducationLevel = document.EducationLevel
+        });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> EditDocument(Guid applicantUserId, UpdateDocumentViewModel model)
+    {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
+        var apiModel = new UpdateDocumentApiModel
+        {
+            Type = model.Type,
+            SeriesNumber = model.SeriesNumber,
+            IssuedBy = model.IssuedBy,
+            BirthPlace = model.BirthPlace,
+            IssueDate = model.IssueDate,
+            EducationDocumentName = model.EducationDocumentName,
+            EducationLevel = model.EducationLevel
+        };
+
+        var result = await _documentApiService.UpdateForApplicantAsync(applicantUserId, model.Id, apiModel);
+        TempData["Message"] = result.Success ? "Документ обновлен" : result.Error;
+
+        return RedirectToAction("Details", new { applicantUserId });
+    }
+
+    [HttpGet]
+    public IActionResult UploadDocument(Guid applicantUserId)
+    {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
+        ViewBag.ApplicantUserId = applicantUserId;
+        return View(new UploadDocumentViewModel());
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UploadDocument(Guid applicantUserId, UploadDocumentViewModel model)
+    {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
+        if (model.UploadedFile == null || model.UploadedFile.Length == 0)
+        {
+            TempData["Message"] = "Файл не выбран";
+            return RedirectToAction("UploadDocument", new { applicantUserId });
+        }
+
+        await using var memoryStream = new MemoryStream();
+        await model.UploadedFile.CopyToAsync(memoryStream);
+
+        var apiModel = new UploadDocumentApiModel
+        {
+            Type = model.Type,
+            FileName = model.UploadedFile.FileName,
+            ContentType = model.UploadedFile.ContentType,
+            FileContentBase64 = Convert.ToBase64String(memoryStream.ToArray()),
+            SeriesNumber = model.SeriesNumber,
+            IssuedBy = model.IssuedBy,
+            BirthPlace = model.BirthPlace,
+            IssueDate = model.IssueDate,
+            EducationDocumentName = model.EducationDocumentName,
+            EducationLevel = model.EducationLevel
+        };
+
+        var result = await _documentApiService.UploadForApplicantAsync(applicantUserId, apiModel);
+        TempData["Message"] = result.Success ? "Документ загружен" : result.Error;
+
+        return RedirectToAction("Details", new { applicantUserId });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteDocument(Guid applicantUserId, Guid documentId)
+    {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
+        var result = await _documentApiService.DeleteForApplicantAsync(applicantUserId, documentId);
+        TempData["Message"] = result.Success ? "Документ удален" : result.Error;
+
+        return RedirectToAction("Details", new { applicantUserId });
+    }
+
+    [HttpGet]
+    public IActionResult ReplaceDocumentFile(Guid applicantUserId, Guid documentId)
+    {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
+        ViewBag.ApplicantUserId = applicantUserId;
+        return View(new ReplaceDocumentFileViewModel
+        {
+            Id = documentId
+        });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ReplaceDocumentFile(Guid applicantUserId, ReplaceDocumentFileViewModel model)
+    {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
+        if (model.UploadedFile == null || model.UploadedFile.Length == 0)
+        {
+            TempData["Message"] = "Файл не выбран";
+            return RedirectToAction("ReplaceDocumentFile", new { applicantUserId, documentId = model.Id });
+        }
+
+        await using var memoryStream = new MemoryStream();
+        await model.UploadedFile.CopyToAsync(memoryStream);
+
+        var apiModel = new ReplaceDocumentFileApiModel
+        {
+            FileName = model.UploadedFile.FileName,
+            ContentType = model.UploadedFile.ContentType,
+            FileContentBase64 = Convert.ToBase64String(memoryStream.ToArray())
+        };
+
+        var result = await _documentApiService.ReplaceFileForApplicantAsync(applicantUserId, model.Id, apiModel);
+        TempData["Message"] = result.Success ? "Скан документа заменен" : result.Error;
+
+        return RedirectToAction("Details", new { applicantUserId });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> AddProgramToAdmission(Guid applicantUserId, Guid admissionId, Guid programId, int priority)
+    {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
+        var result = await _admissionApiService.AddProgramForStaffAsync(admissionId, programId, priority);
+        TempData["Message"] = result.Success ? "Программа добавлена" : result.Error;
+
+        return RedirectToAction("Details", new { applicantUserId });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdateProgramPriority(Guid applicantUserId, Guid admissionId, Guid programId, int priority)
+    {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
+        var result = await _admissionApiService.UpdateProgramPriorityForStaffAsync(admissionId, programId, priority);
+        TempData["Message"] = result.Success ? "Приоритет обновлен" : result.Error;
+
+        return RedirectToAction("Details", new { applicantUserId });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> RemoveProgramFromAdmission(Guid applicantUserId, Guid admissionId, Guid programId)
+    {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
+        var result = await _admissionApiService.RemoveProgramForStaffAsync(admissionId, programId);
+        TempData["Message"] = result.Success ? "Программа удалена" : result.Error;
+
+        return RedirectToAction("Details", new { applicantUserId });
     }
 
     [HttpGet]

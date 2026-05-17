@@ -13,4 +13,8 @@ public interface IAdmissionApiService
     Task<ApiResult<string>> AddProgramAsync(Guid programId, int priority);
     Task<ApiResult<string>> UpdateProgramPriorityAsync(Guid programId, int priority);
     Task<ApiResult<string>> RemoveProgramAsync(Guid programId);
+
+    Task<ApiResult<string>> AddProgramForStaffAsync(Guid admissionId, Guid programId, int priority);
+    Task<ApiResult<string>> UpdateProgramPriorityForStaffAsync(Guid admissionId, Guid programId, int priority);
+    Task<ApiResult<string>> RemoveProgramForStaffAsync(Guid admissionId, Guid programId);
 }

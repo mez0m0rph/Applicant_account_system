@@ -28,9 +28,18 @@ public class DocumentApiService : IDocumentApiService
         var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/documents", model);
         var content = await response.Content.ReadAsStringAsync();
 
-        return response.IsSuccessStatusCode
-            ? ApiResult<string>.Ok(content)
-            : ApiResult<string>.Fail(content);
+        return response.IsSuccessStatusCode ? ApiResult<string>.Ok(content) : ApiResult<string>.Fail(content);
+    }
+
+    public async Task<ApiResult<string>> UploadForApplicantAsync(Guid applicantUserId, UploadDocumentApiModel model)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Document"];
+        var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/documents/applicant/{applicantUserId}", model);
+        var content = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode ? ApiResult<string>.Ok(content) : ApiResult<string>.Fail(content);
     }
 
     public async Task<ApiResult<List<DocumentViewModel>>> GetMyAsync()
@@ -73,24 +82,39 @@ public class DocumentApiService : IDocumentApiService
 
         var content = await response.Content.ReadAsByteArrayAsync();
         var contentType = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
-
-        var fileName = "document";
-        var disposition = response.Content.Headers.ContentDisposition;
-        if (disposition != null)
-        {
-            fileName =
-                disposition.FileNameStar ??
-                disposition.FileName ??
-                fileName;
-
-            fileName = fileName.Trim('"');
-        }
+        var fileName = response.Content.Headers.ContentDisposition?.FileNameStar
+                       ?? response.Content.Headers.ContentDisposition?.FileName
+                       ?? "document";
 
         return ApiResult<DownloadedFileViewModel>.Ok(new DownloadedFileViewModel
         {
             Content = content,
             ContentType = contentType,
-            FileName = fileName
+            FileName = fileName.Trim('"')
+        });
+    }
+
+    public async Task<ApiResult<DownloadedFileViewModel>> DownloadForApplicantAsync(Guid applicantUserId, Guid documentId)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Document"];
+        var response = await _httpClient.GetAsync($"{baseUrl}/documents/applicant/{applicantUserId}/{documentId}/download");
+
+        if (!response.IsSuccessStatusCode)
+            return ApiResult<DownloadedFileViewModel>.Fail(await response.Content.ReadAsStringAsync());
+
+        var content = await response.Content.ReadAsByteArrayAsync();
+        var contentType = response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream";
+        var fileName = response.Content.Headers.ContentDisposition?.FileNameStar
+                       ?? response.Content.Headers.ContentDisposition?.FileName
+                       ?? "document";
+
+        return ApiResult<DownloadedFileViewModel>.Ok(new DownloadedFileViewModel
+        {
+            Content = content,
+            ContentType = contentType,
+            FileName = fileName.Trim('"')
         });
     }
 
@@ -102,9 +126,18 @@ public class DocumentApiService : IDocumentApiService
         var response = await _httpClient.DeleteAsync($"{baseUrl}/documents/my/{documentId}");
         var content = await response.Content.ReadAsStringAsync();
 
-        return response.IsSuccessStatusCode
-            ? ApiResult<string>.Ok(content)
-            : ApiResult<string>.Fail(content);
+        return response.IsSuccessStatusCode ? ApiResult<string>.Ok(content) : ApiResult<string>.Fail(content);
+    }
+
+    public async Task<ApiResult<string>> DeleteForApplicantAsync(Guid applicantUserId, Guid documentId)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Document"];
+        var response = await _httpClient.DeleteAsync($"{baseUrl}/documents/applicant/{applicantUserId}/{documentId}");
+        var content = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode ? ApiResult<string>.Ok(content) : ApiResult<string>.Fail(content);
     }
 
     public async Task<ApiResult<string>> UpdateAsync(Guid documentId, UpdateDocumentApiModel model)
@@ -115,9 +148,18 @@ public class DocumentApiService : IDocumentApiService
         var response = await _httpClient.PutAsJsonAsync($"{baseUrl}/documents/my/{documentId}", model);
         var content = await response.Content.ReadAsStringAsync();
 
-        return response.IsSuccessStatusCode
-            ? ApiResult<string>.Ok(content)
-            : ApiResult<string>.Fail(content);
+        return response.IsSuccessStatusCode ? ApiResult<string>.Ok(content) : ApiResult<string>.Fail(content);
+    }
+
+    public async Task<ApiResult<string>> UpdateForApplicantAsync(Guid applicantUserId, Guid documentId, UpdateDocumentApiModel model)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Document"];
+        var response = await _httpClient.PutAsJsonAsync($"{baseUrl}/documents/applicant/{applicantUserId}/{documentId}", model);
+        var content = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode ? ApiResult<string>.Ok(content) : ApiResult<string>.Fail(content);
     }
 
     public async Task<ApiResult<string>> ReplaceFileAsync(Guid documentId, ReplaceDocumentFileApiModel model)
@@ -128,8 +170,17 @@ public class DocumentApiService : IDocumentApiService
         var response = await _httpClient.PutAsJsonAsync($"{baseUrl}/documents/my/{documentId}/file", model);
         var content = await response.Content.ReadAsStringAsync();
 
-        return response.IsSuccessStatusCode
-            ? ApiResult<string>.Ok(content)
-            : ApiResult<string>.Fail(content);
+        return response.IsSuccessStatusCode ? ApiResult<string>.Ok(content) : ApiResult<string>.Fail(content);
+    }
+
+    public async Task<ApiResult<string>> ReplaceFileForApplicantAsync(Guid applicantUserId, Guid documentId, ReplaceDocumentFileApiModel model)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Document"];
+        var response = await _httpClient.PutAsJsonAsync($"{baseUrl}/documents/applicant/{applicantUserId}/{documentId}/file", model);
+        var content = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode ? ApiResult<string>.Ok(content) : ApiResult<string>.Fail(content);
     }
 }

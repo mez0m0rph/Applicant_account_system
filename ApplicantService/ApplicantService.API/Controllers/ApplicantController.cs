@@ -67,4 +67,12 @@ public class ApplicantController : ControllerBase
         await _service.UpdateAsync(userId, request);
         return Ok("Профиль обновлен");
     }
+
+    [Authorize(Roles = "Manager,MainManager,Admin")]
+    [HttpPut("{userId:guid}")]
+    public async Task<IActionResult> UpdateByUserId(Guid userId, [FromBody] UpdateApplicantRequest request)
+    {
+        await _service.UpdateAsync(userId, request);
+        return Ok("Профиль абитуриента обновлен");
+    }
 }

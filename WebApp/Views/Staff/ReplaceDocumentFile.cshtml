@@ -1,0 +1,20 @@
+@model WebApp.Models.Document.ReplaceDocumentFileViewModel
+@{
+    ViewData["Title"] = "Замена файла документа";
+    var applicantUserId = (Guid)ViewBag.ApplicantUserId;
+}
+
+<h2>Замена файла документа</h2>
+
+<form asp-action="ReplaceDocumentFile" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="applicantUserId" value="@applicantUserId" />
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="UploadedFile" class="form-label">Новый файл</label>
+        <input asp-for="UploadedFile" type="file" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Заменить</button>
+    <a asp-action="Details" asp-route-applicantUserId="@applicantUserId" class="btn btn-secondary">Назад</a>
+</form>
