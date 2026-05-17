@@ -16,7 +16,6 @@ public class AdmissionServiceImpl : IAdmissionService
     private readonly IProgramCatalogClient _programCatalogClient;
     private readonly IDocumentCatalogClient _documentCatalogClient;
 
-
     public AdmissionServiceImpl(
         IAdmissionRepository repository,
         IMessagePublisher messagePublisher,
@@ -33,7 +32,7 @@ public class AdmissionServiceImpl : IAdmissionService
 
     private static void EnsureAdmissionEditable(Admission admission)
     {
-        if (admission.Status == AdmissionStatus.Closed) 
+        if (admission.Status == AdmissionStatus.Closed)
             throw new Exception("Заявление закрыто и не может быть изменено");
     }
 
@@ -144,6 +143,27 @@ public class AdmissionServiceImpl : IAdmissionService
         return result;
     }
 
+    public async Task<PagedAdmissionsResponse> GetPagedAsync(GetAdmissionsQuery query)
+    {
+        var page = query.Page < 1 ? 1 : query.Page;
+        var pageSize = query.PageSize < 1 ? 10 : query.PageSize;
+
+        var (items, totalCount) = await _repository.GetPagedAsync(query);
+
+        var mapped = new List<AdmissionResponse>();
+        foreach (var item in items)
+            mapped.Add(await MapAsync(item));
+
+        return new PagedAdmissionsResponse
+        {
+            Items = mapped,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize)
+        };
+    }
+
     public async Task AddProgramAsync(Guid applicantUserId, Guid programId, int priority)
     {
         var admission = await _repository.GetByApplicantUserIdAsync(applicantUserId);
@@ -154,12 +174,12 @@ public class AdmissionServiceImpl : IAdmissionService
         EnsurePriorityValid(priority);
 
         var currentPrograms = await _repository.GetProgramsByAdmissionIdAsync(admission.Id);
-        if (currentPrograms.Count >= _maxPrograms) 
+        if (currentPrograms.Count >= _maxPrograms)
             throw new Exception($"Нельзя выбрать больше {_maxPrograms} программ");
 
         if (currentPrograms.Any(x => x.ProgramId == programId))
             throw new Exception("Программа уже добавлена в заявление");
-        
+
         var newProgram = await _programCatalogClient.GetByIdAsync(programId);
         if (newProgram == null)
             throw new Exception("Программа не найдена");

@@ -1,6 +1,7 @@
 using WebApp.Models.Admission;
 using WebApp.Models.Common;
 using WebApp.Models.Manager;
+using WebApp.Models.Staff;
 
 namespace WebApp.Services;
 
@@ -12,7 +13,7 @@ public interface IStaffApiService
     Task<ApiResult<string>> UpdateManagerAsync(EditManagerViewModel model);
     Task<ApiResult<string>> DeleteManagerAsync(Guid id);
 
-    Task<ApiResult<List<AdmissionViewModel>>> GetAdmissionsAsync();
+    Task<ApiResult<PagedAdmissionsViewModel>> GetAdmissionsAsync(StaffAdmissionsFilterViewModel filter);
     Task<ApiResult<string>> AssignManagerAsync(AssignManagerViewModel model);
     Task<ApiResult<string>> ReleaseManagerAsync(Guid admissionId);
     Task<ApiResult<string>> UpdateAdmissionStatusAsync(UpdateAdmissionStatusViewModel model);

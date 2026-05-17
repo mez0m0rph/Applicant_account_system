@@ -1,6 +1,7 @@
 @model WebApp.Models.Program.ProgramsIndexPageViewModel
 @{
     ViewData["Title"] = "Программы";
+    var programs = Model.PagedPrograms.Items;
 }
 
 <h2>Список программ</h2>
@@ -10,12 +11,75 @@
     <div class="alert alert-info">@TempData["Message"]</div>
 }
 
-@if (!Model.Programs.Any())
+<form method="get" class="row g-3 mb-4">
+    <div class="col-md-3">
+        <label class="form-label">Поиск</label>
+        <input type="text" name="Search" value="@Model.Filter.Search" class="form-control" placeholder="Название или код" />
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Факультет</label>
+        <input type="text" name="Faculty" value="@Model.Filter.Faculty" class="form-control" placeholder="Например, Институт..." />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Уровень</label>
+        <select name="EducationLevel" class="form-control">
+            <option value="">Все</option>
+            <option value="Бакалавриат" selected="@(Model.Filter.EducationLevel == "Бакалавриат")">Бакалавриат</option>
+            <option value="Специалитет" selected="@(Model.Filter.EducationLevel == "Специалитет")">Специалитет</option>
+            <option value="Магистратура" selected="@(Model.Filter.EducationLevel == "Магистратура")">Магистратура</option>
+            <option value="Аспирантура" selected="@(Model.Filter.EducationLevel == "Аспирантура")">Аспирантура</option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Форма</label>
+        <select name="EducationForm" class="form-control">
+            <option value="">Все</option>
+            <option value="Очная" selected="@(Model.Filter.EducationForm == "Очная")">Очная</option>
+            <option value="Заочная" selected="@(Model.Filter.EducationForm == "Заочная")">Заочная</option>
+            <option value="Очно-заочная" selected="@(Model.Filter.EducationForm == "Очно-заочная")">Очно-заочная</option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Язык</label>
+        <select name="Language" class="form-control">
+            <option value="">Все</option>
+            <option value="Русский" selected="@(Model.Filter.Language == "Русский")">Русский</option>
+            <option value="English" selected="@(Model.Filter.Language == "English")">English</option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Размер страницы</label>
+        <select name="PageSize" class="form-control">
+            <option value="5" selected="@(Model.Filter.PageSize == 5)">5</option>
+            <option value="10" selected="@(Model.Filter.PageSize == 10)">10</option>
+            <option value="20" selected="@(Model.Filter.PageSize == 20)">20</option>
+            <option value="50" selected="@(Model.Filter.PageSize == 50)">50</option>
+        </select>
+    </div>
+
+    <input type="hidden" name="Page" value="1" />
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Применить</button>
+        <a asp-action="Index" class="btn btn-secondary">Сбросить</a>
+    </div>
+</form>
+
+@if (!programs.Any())
 {
     <div class="alert alert-warning">Программы не найдены.</div>
 }
 else
 {
+    <div class="mb-3 text-muted">
+        Найдено программ: @Model.PagedPrograms.TotalCount
+    </div>
+
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
@@ -25,12 +89,12 @@ else
                 <th>Уровень</th>
                 <th>Форма</th>
                 <th>Язык</th>
-                <th>Приоритет</th>
-                <th>Действие</th>
+                <th style="width: 120px;">Приоритет</th>
+                <th style="width: 140px;">Действие</th>
             </tr>
         </thead>
         <tbody>
-        @foreach (var p in Model.Programs)
+        @foreach (var p in programs)
         {
             var selected = Model.SelectedProgramIds.Contains(p.Id);
 
@@ -68,4 +132,59 @@ else
         }
         </tbody>
     </table>
+
+    @if (Model.PagedPrograms.TotalPages > 1)
+    {
+        <nav>
+            <ul class="pagination flex-wrap">
+                <li class="page-item @(Model.PagedPrograms.Page <= 1 ? "disabled" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-Search="@Model.Filter.Search"
+                       asp-route-Faculty="@Model.Filter.Faculty"
+                       asp-route-EducationLevel="@Model.Filter.EducationLevel"
+                       asp-route-EducationForm="@Model.Filter.EducationForm"
+                       asp-route-Language="@Model.Filter.Language"
+                       asp-route-Page="@(Model.PagedPrograms.Page - 1)"
+                       asp-route-PageSize="@Model.Filter.PageSize">
+                        Назад
+                    </a>
+                </li>
+
+                @for (int i = 1; i <= Model.PagedPrograms.TotalPages; i++)
+                {
+                    if (i == 1 || i == Model.PagedPrograms.TotalPages || Math.Abs(i - Model.PagedPrograms.Page) <= 2)
+                    {
+                        <li class="page-item @(i == Model.PagedPrograms.Page ? "active" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-Search="@Model.Filter.Search"
+                               asp-route-Faculty="@Model.Filter.Faculty"
+                               asp-route-EducationLevel="@Model.Filter.EducationLevel"
+                               asp-route-EducationForm="@Model.Filter.EducationForm"
+                               asp-route-Language="@Model.Filter.Language"
+                               asp-route-Page="@i"
+                               asp-route-PageSize="@Model.Filter.PageSize">
+                                @i
+                            </a>
+                        </li>
+                    }
+                }
+
+                <li class="page-item @(Model.PagedPrograms.Page >= Model.PagedPrograms.TotalPages ? "disabled" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-Search="@Model.Filter.Search"
+                       asp-route-Faculty="@Model.Filter.Faculty"
+                       asp-route-EducationLevel="@Model.Filter.EducationLevel"
+                       asp-route-EducationForm="@Model.Filter.EducationForm"
+                       asp-route-Language="@Model.Filter.Language"
+                       asp-route-Page="@(Model.PagedPrograms.Page + 1)"
+                       asp-route-PageSize="@Model.Filter.PageSize">
+                        Вперед
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
 }

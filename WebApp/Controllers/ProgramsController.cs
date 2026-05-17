@@ -18,15 +18,24 @@ public class ProgramsController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index([FromQuery] ProgramsFilterViewModel filter)
     {
-        var programsResult = await _programApiService.GetAllAsync();
+        if (filter.Page < 1)
+            filter.Page = 1;
+
+        if (filter.PageSize < 1)
+            filter.PageSize = 10;
+
+        var programsResult = await _programApiService.GetAllAsync(filter);
         var admissionResult = await _admissionApiService.GetMyAsync();
 
         if (!programsResult.Success)
         {
             TempData["Message"] = programsResult.Error;
-            return View(new ProgramsIndexPageViewModel());
+            return View(new ProgramsIndexPageViewModel
+            {
+                Filter = filter
+            });
         }
 
         var selected = new HashSet<Guid>(
@@ -34,7 +43,8 @@ public class ProgramsController : Controller
 
         var model = new ProgramsIndexPageViewModel
         {
-            Programs = programsResult.Data ?? new List<ProgramViewModel>(),
+            PagedPrograms = programsResult.Data ?? new PagedProgramsViewModel(),
+            Filter = filter,
             SelectedProgramIds = selected
         };
 

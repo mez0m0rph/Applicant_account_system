@@ -3,6 +3,7 @@ using System.Text.Json;
 using WebApp.Models.Admission;
 using WebApp.Models.Common;
 using WebApp.Models.Manager;
+using WebApp.Models.Staff;
 
 namespace WebApp.Services;
 
@@ -127,18 +128,47 @@ public class StaffApiService : IStaffApiService
             : ApiResult<string>.Fail(ReadMessage(content, "Ошибка удаления менеджера"));
     }
 
-    public async Task<ApiResult<List<AdmissionViewModel>>> GetAdmissionsAsync()
+    public async Task<ApiResult<PagedAdmissionsViewModel>> GetAdmissionsAsync(StaffAdmissionsFilterViewModel filter)
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
         var baseUrl = _configuration["ApiUrls:Admission"];
-        var response = await _httpClient.GetAsync($"{baseUrl}/admissions");
+        var query = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+            query.Add($"search={Uri.EscapeDataString(filter.Search)}");
+
+        if (filter.ProgramId.HasValue)
+            query.Add($"programId={filter.ProgramId.Value}");
+
+        if (!string.IsNullOrWhiteSpace(filter.Faculty))
+            query.Add($"faculty={Uri.EscapeDataString(filter.Faculty)}");
+
+        if (!string.IsNullOrWhiteSpace(filter.Status))
+            query.Add($"status={Uri.EscapeDataString(filter.Status)}");
+
+        if (filter.OnlyUnassigned)
+            query.Add("onlyUnassigned=true");
+
+        if (filter.AssignedManagerUserId.HasValue)
+            query.Add($"assignedManagerUserId={filter.AssignedManagerUserId.Value}");
+
+        query.Add($"sortBy={Uri.EscapeDataString(filter.SortBy)}");
+        query.Add($"sortDirection={Uri.EscapeDataString(filter.SortDirection)}");
+        query.Add($"page={filter.Page}");
+        query.Add($"pageSize={filter.PageSize}");
+
+        var url = $"{baseUrl}/admissions";
+        if (query.Count > 0)
+            url += "?" + string.Join("&", query);
+
+        var response = await _httpClient.GetAsync(url);
 
         if (!response.IsSuccessStatusCode)
-            return ApiResult<List<AdmissionViewModel>>.Fail(ReadMessage(await response.Content.ReadAsStringAsync(), "Ошибка получения списка заявлений"));
+            return ApiResult<PagedAdmissionsViewModel>.Fail(ReadMessage(await response.Content.ReadAsStringAsync(), "Ошибка получения списка заявлений"));
 
-        var data = await response.Content.ReadFromJsonAsync<List<AdmissionViewModel>>();
-        return ApiResult<List<AdmissionViewModel>>.Ok(data ?? new());
+        var data = await response.Content.ReadFromJsonAsync<PagedAdmissionsViewModel>();
+        return ApiResult<PagedAdmissionsViewModel>.Ok(data ?? new PagedAdmissionsViewModel());
     }
 
     public async Task<ApiResult<string>> AssignManagerAsync(AssignManagerViewModel model)

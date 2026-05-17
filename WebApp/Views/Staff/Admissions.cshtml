@@ -1,6 +1,7 @@
 @model WebApp.Models.Staff.StaffAdmissionsPageViewModel
 @{
     ViewData["Title"] = "Все поступления";
+    var admissions = Model.PagedAdmissions.Items;
 }
 
 <h2>Все поступления</h2>
@@ -10,12 +11,73 @@
     <div class="alert alert-info">@TempData["Message"]</div>
 }
 
-@if (!Model.Admissions.Any())
+<form method="get" class="row g-3 mb-4">
+    <div class="col-md-3">
+        <label class="form-label">Поиск по email</label>
+        <input type="text" name="Search" value="@Model.Filter.Search" class="form-control" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Факультет</label>
+        <input type="text" name="Faculty" value="@Model.Filter.Faculty" class="form-control" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Статус</label>
+        <select name="Status" class="form-control">
+            <option value="">Все</option>
+            <option value="Created" selected="@(Model.Filter.Status == "Created")">Created</option>
+            <option value="OnReview" selected="@(Model.Filter.Status == "OnReview")">OnReview</option>
+            <option value="Confirmed" selected="@(Model.Filter.Status == "Confirmed")">Confirmed</option>
+            <option value="Rejected" selected="@(Model.Filter.Status == "Rejected")">Rejected</option>
+            <option value="Closed" selected="@(Model.Filter.Status == "Closed")">Closed</option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Сортировка</label>
+        <select name="SortDirection" class="form-control">
+            <option value="desc" selected="@(Model.Filter.SortDirection == "desc")">Сначала новые</option>
+            <option value="asc" selected="@(Model.Filter.SortDirection == "asc")">Сначала старые</option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Размер страницы</label>
+        <select name="PageSize" class="form-control">
+            <option value="5" selected="@(Model.Filter.PageSize == 5)">5</option>
+            <option value="10" selected="@(Model.Filter.PageSize == 10)">10</option>
+            <option value="20" selected="@(Model.Filter.PageSize == 20)">20</option>
+            <option value="50" selected="@(Model.Filter.PageSize == 50)">50</option>
+        </select>
+    </div>
+
+    <div class="col-md-1 d-flex align-items-end">
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" name="OnlyUnassigned" value="true" @(Model.Filter.OnlyUnassigned ? "checked" : "") />
+            <label class="form-check-label">Свободные</label>
+        </div>
+    </div>
+
+    <input type="hidden" name="SortBy" value="updatedAt" />
+    <input type="hidden" name="Page" value="1" />
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Применить</button>
+        <a asp-action="Admissions" class="btn btn-secondary">Сбросить</a>
+    </div>
+</form>
+
+@if (!admissions.Any())
 {
     <div class="alert alert-warning">Поступления пока отсутствуют.</div>
 }
 else
 {
+    <div class="mb-3 text-muted">
+        Найдено заявлений: @Model.PagedAdmissions.TotalCount
+    </div>
+
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
@@ -31,7 +93,7 @@ else
             </tr>
         </thead>
         <tbody>
-        @foreach (var a in Model.Admissions)
+        @foreach (var a in admissions)
         {
             <tr>
                 <td>@a.ApplicantEmail</td>
@@ -109,4 +171,29 @@ else
         }
         </tbody>
     </table>
+
+    @if (Model.PagedAdmissions.TotalPages > 1)
+    {
+        <nav>
+            <ul class="pagination flex-wrap">
+                @for (int i = 1; i <= Model.PagedAdmissions.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.PagedAdmissions.Page ? "active" : "")">
+                        <a class="page-link"
+                           asp-action="Admissions"
+                           asp-route-Search="@Model.Filter.Search"
+                           asp-route-Faculty="@Model.Filter.Faculty"
+                           asp-route-Status="@Model.Filter.Status"
+                           asp-route-OnlyUnassigned="@Model.Filter.OnlyUnassigned"
+                           asp-route-SortBy="@Model.Filter.SortBy"
+                           asp-route-SortDirection="@Model.Filter.SortDirection"
+                           asp-route-Page="@i"
+                           asp-route-PageSize="@Model.Filter.PageSize">
+                            @i
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
 }

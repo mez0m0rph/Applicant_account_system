@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ProgramService.Application.DTOs;
 using ProgramService.Application.Interfaces;
 using ProgramService.Domain.Entities;
 using ProgramService.Infrastructure.Data;
@@ -19,6 +20,57 @@ public class ProgramRepository : IProgramRepository
         return await _context.StudyPrograms
             .OrderBy(x => x.Title)
             .ToListAsync();
+    }
+
+    public async Task<(List<StudyProgram> Items, int TotalCount)> GetPagedAsync(GetProgramsQuery query)
+    {
+        var page = query.Page < 1 ? 1 : query.Page;
+        var pageSize = query.PageSize < 1 ? 10 : query.PageSize;
+
+        var programs = _context.StudyPrograms.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var search = query.Search.Trim().ToLower();
+
+            programs = programs.Where(x =>
+                x.Title.ToLower().Contains(search) ||
+                x.Code.ToLower().Contains(search));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Faculty))
+        {
+            var faculty = query.Faculty.Trim().ToLower();
+            programs = programs.Where(x => x.Faculty.ToLower() == faculty);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.EducationLevel))
+        {
+            var level = query.EducationLevel.Trim().ToLower();
+            programs = programs.Where(x => x.EducationLevel.ToLower() == level);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.EducationForm))
+        {
+            var form = query.EducationForm.Trim().ToLower();
+            programs = programs.Where(x => x.EducationForm.ToLower() == form);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Language))
+        {
+            var language = query.Language.Trim().ToLower();
+            programs = programs.Where(x => x.Language.ToLower() == language);
+        }
+
+        var totalCount = await programs.CountAsync();
+
+        var items = await programs
+            .OrderBy(x => x.Title)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 
     public async Task<StudyProgram?> GetByIdAsync(Guid id)

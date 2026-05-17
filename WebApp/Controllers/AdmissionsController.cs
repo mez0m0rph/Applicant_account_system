@@ -7,17 +7,10 @@ namespace WebApp.Controllers;
 public class AdmissionsController : Controller
 {
     private readonly IAdmissionApiService _admissionApiService;
-    private readonly IProgramApiService _programApiService;
-    private readonly IStaffApiService _staffApiService;
 
-    public AdmissionsController(
-        IAdmissionApiService admissionApiService,
-        IProgramApiService programApiService,
-        IStaffApiService staffApiService)
+    public AdmissionsController(IAdmissionApiService admissionApiService)
     {
         _admissionApiService = admissionApiService;
-        _programApiService = programApiService;
-        _staffApiService = staffApiService;
     }
 
     [HttpGet]
@@ -28,54 +21,31 @@ public class AdmissionsController : Controller
         if (!result.Success)
         {
             TempData["Message"] = result.Error;
-            return View(null);
+            return View(new AdmissionViewModel());
         }
 
-        var model = result.Data;
-        if (model == null)
-            return View(null);
+        return View(result.Data ?? new AdmissionViewModel());
+    }
 
-        var programsResult = await _programApiService.GetAllAsync();
-        if (programsResult.Success && programsResult.Data != null)
-        {
-            var map = programsResult.Data.ToDictionary(x => x.Id, x => x);
-            foreach (var p in model.Programs)
-            {
-                if (map.TryGetValue(p.ProgramId, out var program))
-                {
-                    p.ProgramCode = program.Code;
-                    p.ProgramTitle = program.Title;
-                }
-            }
-        }
-
-        if (model.AssignedManagerUserId.HasValue)
-        {
-            var managersResult = await _staffApiService.GetManagersAsync();
-            if (managersResult.Success && managersResult.Data != null)
-            {
-                var manager = managersResult.Data.FirstOrDefault(x => x.UserId == model.AssignedManagerUserId.Value);
-                if (manager != null)
-                {
-                    model.AssignedManagerName = manager.FullName;
-                    model.AssignedManagerEmail = manager.Email;
-                }
-            }
-        }
-
-        return View(model);
+    [HttpGet]
+    public IActionResult Create()
+    {
+        return View(new CreateAdmissionViewModel());
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create()
+    public async Task<IActionResult> Create(CreateAdmissionViewModel model)
     {
-        var result = await _admissionApiService.CreateAsync(new CreateAdmissionViewModel());
+        var result = await _admissionApiService.CreateAsync(model);
 
-        TempData["Message"] = result.Success
-            ? "Заявление успешно подано"
-            : result.Error;
+        if (!result.Success)
+        {
+            TempData["Message"] = result.Error;
+            return View(model);
+        }
 
-        return RedirectToAction(nameof(My));
+        TempData["Message"] = "Заявление создано";
+        return RedirectToAction("My");
     }
 
     [HttpPost]
@@ -91,7 +61,7 @@ public class AdmissionsController : Controller
     {
         var result = await _admissionApiService.UpdateProgramPriorityAsync(programId, priority);
         TempData["Message"] = result.Success ? "Приоритет обновлен" : result.Error;
-        return RedirectToAction(nameof(My));
+        return RedirectToAction("My");
     }
 
     [HttpPost]
@@ -99,6 +69,6 @@ public class AdmissionsController : Controller
     {
         var result = await _admissionApiService.RemoveProgramAsync(programId);
         TempData["Message"] = result.Success ? "Программа удалена" : result.Error;
-        return RedirectToAction(nameof(My));
+        return RedirectToAction("My");
     }
 }

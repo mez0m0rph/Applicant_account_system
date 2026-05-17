@@ -50,9 +50,33 @@ public class AdmissionsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? search,
+        [FromQuery] Guid? programId,
+        [FromQuery] string? faculty,
+        [FromQuery] string? status,
+        [FromQuery] bool onlyUnassigned = false,
+        [FromQuery] Guid? assignedManagerUserId = null,
+        [FromQuery] string sortBy = "updatedAt",
+        [FromQuery] string sortDirection = "desc",
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
-        return Ok(await _service.GetAllAsync());
+        var query = new GetAdmissionsQuery
+        {
+            Search = search,
+            ProgramId = programId,
+            Faculty = faculty,
+            Status = status,
+            OnlyUnassigned = onlyUnassigned,
+            AssignedManagerUserId = assignedManagerUserId,
+            SortBy = sortBy,
+            SortDirection = sortDirection,
+            Page = page,
+            PageSize = pageSize
+        };
+
+        return Ok(await _service.GetPagedAsync(query));
     }
 
     [AllowAnonymous]

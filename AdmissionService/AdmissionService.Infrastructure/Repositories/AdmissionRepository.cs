@@ -1,3 +1,4 @@
+using AdmissionService.Application.DTOs;
 using AdmissionService.Application.Interfaces;
 using AdmissionService.Domain.Entities;
 using AdmissionService.Infrastructure.Data;
@@ -29,6 +30,75 @@ public class AdmissionRepository : IAdmissionRepository
         return await _context.Admissions
             .OrderByDescending(x => x.UpdatedAt)
             .ToListAsync();
+    }
+
+    public async Task<(List<Admission> Items, int TotalCount)> GetPagedAsync(GetAdmissionsQuery query)
+    {
+        var page = query.Page < 1 ? 1 : query.Page;
+        var pageSize = query.PageSize < 1 ? 10 : query.PageSize;
+
+        var admissions = _context.Admissions.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var search = query.Search.Trim().ToLower();
+            admissions = admissions.Where(x => x.ApplicantEmail.ToLower().Contains(search));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Status))
+        {
+            var status = query.Status.Trim().ToLower();
+            admissions = admissions.Where(x => x.Status.ToString().ToLower() == status);
+        }
+
+        if (query.OnlyUnassigned)
+        {
+            admissions = admissions.Where(x => x.AssignedManagerUserId == null);
+        }
+
+        if (query.AssignedManagerUserId.HasValue)
+        {
+            admissions = admissions.Where(x => x.AssignedManagerUserId == query.AssignedManagerUserId.Value);
+        }
+
+        if (query.ProgramId.HasValue)
+        {
+            var admissionIds = _context.AdmissionPrograms
+                .Where(x => x.ProgramId == query.ProgramId.Value)
+                .Select(x => x.AdmissionId);
+
+            admissions = admissions.Where(x => admissionIds.Contains(x.Id));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Faculty))
+        {
+            var faculty = query.Faculty.Trim().ToLower();
+
+            var matchingAdmissionIds = from ap in _context.AdmissionPrograms
+                                       join sp in _context.Set<ProgramStub>() on ap.ProgramId equals sp.Id
+                                       where sp.Faculty.ToLower() == faculty
+                                       select ap.AdmissionId;
+
+            admissions = admissions.Where(x => matchingAdmissionIds.Contains(x.Id));
+        }
+
+        admissions = (query.SortBy?.ToLower(), query.SortDirection?.ToLower()) switch
+        {
+            ("updatedat", "asc") => admissions.OrderBy(x => x.UpdatedAt),
+            ("createdat", "asc") => admissions.OrderBy(x => x.CreatedAt),
+            ("createdat", _) => admissions.OrderByDescending(x => x.CreatedAt),
+            (_, "asc") => admissions.OrderBy(x => x.UpdatedAt),
+            _ => admissions.OrderByDescending(x => x.UpdatedAt)
+        };
+
+        var totalCount = await admissions.CountAsync();
+
+        var items = await admissions
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 
     public async Task CreateAsync(Admission admission)
@@ -73,5 +143,11 @@ public class AdmissionRepository : IAdmissionRepository
     {
         _context.AdmissionPrograms.Remove(program);
         await _context.SaveChangesAsync();
+    }
+
+    private class ProgramStub
+    {
+        public Guid Id { get; set; }
+        public string Faculty { get; set; } = string.Empty;
     }
 }

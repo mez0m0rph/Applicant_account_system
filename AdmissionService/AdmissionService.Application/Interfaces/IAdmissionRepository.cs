@@ -1,3 +1,4 @@
+using AdmissionService.Application.DTOs;
 using AdmissionService.Domain.Entities;
 
 namespace AdmissionService.Application.Interfaces;
@@ -7,6 +8,7 @@ public interface IAdmissionRepository
     Task<Admission?> GetByApplicantUserIdAsync(Guid applicantUserId);
     Task<Admission?> GetByIdAsync(Guid id);
     Task<List<Admission>> GetAllAsync();
+    Task<(List<Admission> Items, int TotalCount)> GetPagedAsync(GetAdmissionsQuery query);
     Task CreateAsync(Admission admission);
     Task UpdateAdmissionAsync(Admission admission);
 
