@@ -17,6 +17,19 @@
         <input type="text" name="Search" value="@Model.Filter.Search" class="form-control" />
     </div>
 
+    <div class="col-md-3">
+        <label class="form-label">Программа</label>
+        <select name="ProgramId" class="form-control">
+            <option value="">Все</option>
+            @foreach (var program in Model.Programs.OrderBy(x => x.Title))
+            {
+                <option value="@program.Id" selected="@(Model.Filter.ProgramId == program.Id)">
+                    @program.Code - @program.Title
+                </option>
+            }
+        </select>
+    </div>
+
     <div class="col-md-2">
         <label class="form-label">Факультет</label>
         <input type="text" name="Faculty" value="@Model.Filter.Faculty" class="form-control" />
@@ -52,7 +65,7 @@
         </select>
     </div>
 
-    <div class="col-md-1 d-flex align-items-end">
+    <div class="col-md-2 d-flex align-items-end">
         <div>
             <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" name="OnlyUnassigned" value="true" @(Model.Filter.OnlyUnassigned ? "checked" : "") />
@@ -190,6 +203,7 @@ else
                         <a class="page-link"
                            asp-action="Admissions"
                            asp-route-Search="@Model.Filter.Search"
+                           asp-route-ProgramId="@Model.Filter.ProgramId"
                            asp-route-Faculty="@Model.Filter.Faculty"
                            asp-route-Status="@Model.Filter.Status"
                            asp-route-OnlyUnassigned="@Model.Filter.OnlyUnassigned"

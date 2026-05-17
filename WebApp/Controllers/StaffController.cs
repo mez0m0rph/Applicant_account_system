@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WebApp.Models.Admission;
 using WebApp.Models.Manager;
+using WebApp.Models.Program;
 using WebApp.Models.Staff;
 using WebApp.Services;
 
@@ -9,10 +10,14 @@ namespace WebApp.Controllers;
 public class StaffController : Controller
 {
     private readonly IStaffApiService _staffApiService;
+    private readonly IProgramApiService _programApiService;
 
-    public StaffController(IStaffApiService staffApiService)
+    public StaffController(
+        IStaffApiService staffApiService,
+        IProgramApiService programApiService)
     {
         _staffApiService = staffApiService;
+        _programApiService = programApiService;
     }
 
     private string? CurrentRole => HttpContext.Session.GetString("UserRole");
@@ -47,12 +52,18 @@ public class StaffController : Controller
 
         var admissionsResult = await _staffApiService.GetAdmissionsAsync(filter);
         var managersResult = await _staffApiService.GetManagersAsync();
+        var programsResult = await _programApiService.GetAllAsync(new ProgramsFilterViewModel
+        {
+            Page = 1,
+            PageSize = 1000
+        });
 
         var model = new StaffAdmissionsPageViewModel
         {
             PagedAdmissions = admissionsResult.Data ?? new PagedAdmissionsViewModel(),
             Filter = filter,
-            Managers = managersResult.Data ?? new List<ManagerViewModel>()
+            Managers = managersResult.Data ?? new List<ManagerViewModel>(),
+            Programs = programsResult.Data?.Items ?? new List<ProgramViewModel>()
         };
 
         if (!admissionsResult.Success)
@@ -60,6 +71,9 @@ public class StaffController : Controller
 
         if (!managersResult.Success && TempData["Message"] == null)
             TempData["Message"] = managersResult.Error;
+
+        if (!programsResult.Success && TempData["Message"] == null)
+            TempData["Message"] = programsResult.Error;
 
         return View(model);
     }
