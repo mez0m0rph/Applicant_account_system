@@ -1,0 +1,118 @@
+@model WebApp.Models.Staff.StaffApplicantDetailsViewModel
+@{
+    ViewData["Title"] = "Карточка абитуриента";
+}
+
+<h2>Карточка абитуриента</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
+@if (Model.Profile == null)
+{
+    <div class="alert alert-warning">Профиль абитуриента не найден.</div>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-header">Профиль</div>
+        <div class="card-body">
+            <p><strong>ФИО:</strong> @Model.Profile.FullName</p>
+            <p><strong>Email:</strong> @Model.Profile.Email</p>
+            <p><strong>Телефон:</strong> @Model.Profile.Phone</p>
+            <p><strong>Дата рождения:</strong> @Model.Profile.BirthDate.ToLocalTime()</p>
+            <p><strong>Пол:</strong> @Model.Profile.Gender</p>
+            <p><strong>Гражданство:</strong> @Model.Profile.Citizenship</p>
+        </div>
+    </div>
+}
+
+<div class="card mb-4">
+    <div class="card-header">Заявление</div>
+    <div class="card-body">
+        @if (Model.Admission == null)
+        {
+            <p class="mb-0">Заявление отсутствует.</p>
+        }
+        else
+        {
+            <p><strong>Status:</strong> @Model.Admission.Status</p>
+            <p><strong>Создано:</strong> @Model.Admission.CreatedAt.ToLocalTime()</p>
+            <p><strong>Обновлено:</strong> @Model.Admission.UpdatedAt.ToLocalTime()</p>
+
+            <h5 class="mt-3">Программы</h5>
+            @if (!Model.Admission.Programs.Any())
+            {
+                <p class="mb-0">Программы не выбраны.</p>
+            }
+            else
+            {
+                <ul class="mb-0">
+                    @foreach (var p in Model.Admission.Programs.OrderBy(x => x.Priority))
+                    {
+                        <li>
+                            @(string.IsNullOrWhiteSpace(p.ProgramCode) ? "" : $"{p.ProgramCode} — ")
+                            @(string.IsNullOrWhiteSpace(p.ProgramTitle) ? p.ProgramId.ToString() : p.ProgramTitle)
+                            (приоритет @p.Priority)
+                        </li>
+                    }
+                </ul>
+            }
+        }
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">Документы</div>
+    <div class="card-body">
+        @if (!Model.Documents.Any())
+        {
+            <p class="mb-0">Документы отсутствуют.</p>
+        }
+        else
+        {
+            <div class="row">
+                @foreach (var doc in Model.Documents)
+                {
+                    <div class="col-md-6 mb-3">
+                        <div class="border rounded p-3 h-100">
+                            <p><strong>Тип:</strong> @doc.Type</p>
+                            <p><strong>Файл:</strong> @doc.File.FileName</p>
+                            @if (!string.IsNullOrWhiteSpace(doc.SeriesNumber))
+                            {
+                                <p><strong>Серия/номер:</strong> @doc.SeriesNumber</p>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(doc.IssuedBy))
+                            {
+                                <p><strong>Кем выдан:</strong> @doc.IssuedBy</p>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(doc.BirthPlace))
+                            {
+                                <p><strong>Место рождения:</strong> @doc.BirthPlace</p>
+                            }
+                            @if (doc.IssueDate.HasValue)
+                            {
+                                <p><strong>Дата выдачи:</strong> @doc.IssueDate.Value.ToLocalTime()</p>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(doc.EducationDocumentName))
+                            {
+                                <p><strong>Документ об образовании:</strong> @doc.EducationDocumentName</p>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(doc.EducationLevel))
+                            {
+                                <p><strong>Уровень образования:</strong> @doc.EducationLevel</p>
+                            }
+                            <p class="mb-0"><strong>Загружен:</strong> @doc.CreatedAt.ToLocalTime()</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<p>
+    <a asp-action="Admissions" class="btn btn-secondary">Назад к списку</a>
+</p>

@@ -58,6 +58,29 @@ public class AdmissionApiService : IAdmissionApiService
             : ApiResult<AdmissionViewModel>.Ok(data);
     }
 
+    public async Task<ApiResult<AdmissionViewModel>> GetByApplicantUserIdAsync(Guid applicantUserId)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Admission"];
+        var response = await _httpClient.GetAsync($"{baseUrl}/admissions/applicant/{applicantUserId}");
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+            return ApiResult<AdmissionViewModel>.Ok(null!);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            return ApiResult<AdmissionViewModel>.Fail(
+                ReadMessage(error, $"Ошибка получения заявления. HTTP {(int)response.StatusCode}"));
+        }
+
+        var data = await response.Content.ReadFromJsonAsync<AdmissionViewModel>();
+        return data == null
+            ? ApiResult<AdmissionViewModel>.Fail("Пустой ответ")
+            : ApiResult<AdmissionViewModel>.Ok(data);
+    }
+
     public async Task<ApiResult<List<AdmissionViewModel>>> GetAllAsync()
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);

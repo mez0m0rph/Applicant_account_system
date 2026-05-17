@@ -36,6 +36,22 @@ public class ApplicantApiService : IApplicantApiService
             : ApiResult<ProfileViewModel>.Ok(data);
     }
 
+    public async Task<ApiResult<ProfileViewModel>> GetByUserIdAsync(Guid userId)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Applicant"];
+        var response = await _httpClient.GetAsync($"{baseUrl}/applicant/{userId}");
+
+        if (!response.IsSuccessStatusCode)
+            return ApiResult<ProfileViewModel>.Fail(await response.Content.ReadAsStringAsync());
+
+        var data = await response.Content.ReadFromJsonAsync<ProfileViewModel>();
+        return data == null
+            ? ApiResult<ProfileViewModel>.Fail("Пустой ответ")
+            : ApiResult<ProfileViewModel>.Ok(data);
+    }
+
     public async Task<ApiResult<string>> CreateAsync(ProfileViewModel model)
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);

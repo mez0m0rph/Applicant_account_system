@@ -11,13 +11,22 @@ public class StaffController : Controller
 {
     private readonly IStaffApiService _staffApiService;
     private readonly IProgramApiService _programApiService;
+    private readonly IApplicantApiService _applicantApiService;
+    private readonly IDocumentApiService _documentApiService;
+    private readonly IAdmissionApiService _admissionApiService;
 
     public StaffController(
         IStaffApiService staffApiService,
-        IProgramApiService programApiService)
+        IProgramApiService programApiService,
+        IApplicantApiService applicantApiService,
+        IDocumentApiService documentApiService,
+        IAdmissionApiService admissionApiService)
     {
         _staffApiService = staffApiService;
         _programApiService = programApiService;
+        _applicantApiService = applicantApiService;
+        _documentApiService = documentApiService;
+        _admissionApiService = admissionApiService;
     }
 
     private string? CurrentRole => HttpContext.Session.GetString("UserRole");
@@ -74,6 +83,36 @@ public class StaffController : Controller
 
         if (!programsResult.Success && TempData["Message"] == null)
             TempData["Message"] = programsResult.Error;
+
+        return View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Details(Guid applicantUserId)
+    {
+        if (!IsStaff())
+            return ForbiddenRedirect();
+
+        var profileResult = await _applicantApiService.GetByUserIdAsync(applicantUserId);
+        var documentsResult = await _documentApiService.GetByApplicantUserIdAsync(applicantUserId);
+        var admissionResult = await _admissionApiService.GetByApplicantUserIdAsync(applicantUserId);
+
+        var model = new StaffApplicantDetailsViewModel
+        {
+            ApplicantUserId = applicantUserId,
+            Profile = profileResult.Success ? profileResult.Data : null,
+            Documents = documentsResult.Success ? (documentsResult.Data ?? new List<WebApp.Models.Document.DocumentViewModel>()) : new(),
+            Admission = admissionResult.Success ? admissionResult.Data : null
+        };
+
+        if (!profileResult.Success && TempData["Message"] == null)
+            TempData["Message"] = profileResult.Error;
+
+        if (!documentsResult.Success && TempData["Message"] == null)
+            TempData["Message"] = documentsResult.Error;
+
+        if (!admissionResult.Success && TempData["Message"] == null)
+            TempData["Message"] = admissionResult.Error;
 
         return View(model);
     }

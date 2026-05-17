@@ -149,6 +149,7 @@ else
                 <th>Менеджер</th>
                 <th>CreatedAt</th>
                 <th>UpdatedAt</th>
+                <th>Открыть</th>
                 <th>Назначить менеджера</th>
                 <th>Снять менеджера</th>
                 <th>Изменить статус</th>
@@ -192,6 +193,11 @@ else
                 </td>
                 <td>@a.CreatedAt.ToLocalTime()</td>
                 <td>@a.UpdatedAt.ToLocalTime()</td>
+                <td>
+                    <a asp-action="Details" asp-route-applicantUserId="@a.ApplicantUserId" class="btn btn-outline-info btn-sm">
+                        Открыть
+                    </a>
+                </td>
                 <td>
                     @if (Model.Managers.Any())
                     {

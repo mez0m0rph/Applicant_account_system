@@ -47,6 +47,20 @@ public class DocumentApiService : IDocumentApiService
         return ApiResult<List<DocumentViewModel>>.Ok(data ?? new List<DocumentViewModel>());
     }
 
+    public async Task<ApiResult<List<DocumentViewModel>>> GetByApplicantUserIdAsync(Guid applicantUserId)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Document"];
+        var response = await _httpClient.GetAsync($"{baseUrl}/documents/applicant/{applicantUserId}");
+
+        if (!response.IsSuccessStatusCode)
+            return ApiResult<List<DocumentViewModel>>.Fail(await response.Content.ReadAsStringAsync());
+
+        var data = await response.Content.ReadFromJsonAsync<List<DocumentViewModel>>();
+        return ApiResult<List<DocumentViewModel>>.Ok(data ?? new List<DocumentViewModel>());
+    }
+
     public async Task<ApiResult<DownloadedFileViewModel>> DownloadAsync(Guid documentId)
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
