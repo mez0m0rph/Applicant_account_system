@@ -1,0 +1,35 @@
+@model WebApp.Models.Program.ProgramImportStatusViewModel
+@{
+    ViewData["Title"] = "Импорт справочников";
+}
+
+<h2>Импорт справочников</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
+<div class="card mb-4">
+    <div class="card-header">Статус последнего импорта</div>
+    <div class="card-body">
+        <p><strong>Статус:</strong> @Model.Status</p>
+        <p><strong>Начало:</strong> @(Model.StartedAt.HasValue ? Model.StartedAt.Value.ToLocalTime().ToString() : "-")</p>
+        <p><strong>Окончание:</strong> @(Model.FinishedAt.HasValue ? Model.FinishedAt.Value.ToLocalTime().ToString() : "-")</p>
+        <p><strong>Импортировано записей:</strong> @Model.ImportedCount</p>
+        <p><strong>Сообщение:</strong> @Model.Message</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Запуск импорта</div>
+    <div class="card-body">
+        <p class="text-muted">
+            Импорт обновляет справочник программ и связанные с ним данные по факультетам и уровням образования.
+        </p>
+
+        <form asp-action="RunImport" method="post">
+            <button type="submit" class="btn btn-primary">Запустить импорт</button>
+        </form>
+    </div>
+</div>

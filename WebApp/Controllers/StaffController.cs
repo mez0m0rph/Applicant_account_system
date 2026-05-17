@@ -38,9 +38,19 @@ public class StaffController : Controller
         return CurrentRole is "Manager" or "MainManager" or "Admin";
     }
 
+    private bool IsManager()
+    {
+        return CurrentRole == "Manager";
+    }
+
     private bool IsMainManagerOrAdmin()
     {
         return CurrentRole is "MainManager" or "Admin";
+    }
+
+    private bool IsAdmin()
+    {
+        return CurrentRole == "Admin";
     }
 
     private IActionResult ForbiddenRedirect()
@@ -77,6 +87,8 @@ public class StaffController : Controller
             Programs = programsResult.Data?.Items ?? new List<ProgramViewModel>()
         };
 
+        ViewBag.CurrentRole = CurrentRole;
+
         if (!admissionsResult.Success)
             TempData["Message"] = admissionsResult.Error;
 
@@ -87,6 +99,84 @@ public class StaffController : Controller
             TempData["Message"] = programsResult.Error;
 
         return View(model);
+    }
+
+    [HttpGet]
+    public IActionResult CreateManager()
+    {
+        if (!IsAdmin())
+            return ForbiddenRedirect();
+
+        return View(new CreateManagerViewModel());
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateManager(CreateManagerViewModel model)
+    {
+        if (!IsAdmin())
+            return ForbiddenRedirect();
+
+        var result = await _staffApiService.CreateManagerAsync(model);
+
+        if (!result.Success)
+        {
+            TempData["Message"] = result.Error;
+            return View(model);
+        }
+
+        TempData["Message"] = "Менеджер создан";
+        return RedirectToAction("Managers");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> EditManager(Guid id)
+    {
+        if (!IsAdmin())
+            return ForbiddenRedirect();
+
+        var result = await _staffApiService.GetManagerByIdAsync(id);
+
+        if (!result.Success || result.Data == null)
+        {
+            TempData["Message"] = result.Error ?? "Менеджер не найден";
+            return RedirectToAction("Managers");
+        }
+
+        return View(new EditManagerViewModel
+        {
+            Id = result.Data.Id,
+            UserId = result.Data.UserId,
+            FullName = result.Data.FullName,
+            Email = result.Data.Email,
+            Role = result.Data.Role,
+            Faculty = result.Data.Faculty
+        });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> EditManager(EditManagerViewModel model)
+    {
+        if (!IsAdmin())
+            return ForbiddenRedirect();
+
+        var result = await _staffApiService.UpdateManagerAsync(model);
+        TempData["Message"] = result.Success ? "Менеджер обновлен" : result.Error;
+
+        if (!result.Success)
+            return View(model);
+
+        return RedirectToAction("Managers");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteManager(Guid id)
+    {
+        if (!IsAdmin())
+            return ForbiddenRedirect();
+
+        var result = await _staffApiService.DeleteManagerAsync(id);
+        TempData["Message"] = result.Success ? "Менеджер удален" : result.Error;
+        return RedirectToAction("Managers");
     }
 
     [HttpGet]
@@ -358,13 +448,36 @@ public class StaffController : Controller
             return View(new List<ManagerViewModel>());
         }
 
+        ViewBag.IsAdmin = IsAdmin();
         return View(result.Data ?? new List<ManagerViewModel>());
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> TakeAdmission(Guid admissionId)
+    {
+        if (!IsManager())
+            return ForbiddenRedirect();
+
+        var result = await _staffApiService.TakeAdmissionAsync(admissionId);
+        TempData["Message"] = result.Success ? "Поступление взято в работу" : result.Error;
+        return RedirectToAction("Admissions");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ReleaseOwnAdmission(Guid admissionId)
+    {
+        if (!IsManager())
+            return ForbiddenRedirect();
+
+        var result = await _staffApiService.ReleaseOwnAdmissionAsync(admissionId);
+        TempData["Message"] = result.Success ? "Поступление возвращено в общий пул" : result.Error;
+        return RedirectToAction("Admissions");
     }
 
     [HttpPost]
     public async Task<IActionResult> AssignManager(Guid admissionId, Guid managerUserId)
     {
-        if (!IsStaff())
+        if (!IsMainManagerOrAdmin())
             return ForbiddenRedirect();
 
         var result = await _staffApiService.AssignManagerAsync(new AssignManagerViewModel
@@ -380,7 +493,7 @@ public class StaffController : Controller
     [HttpPost]
     public async Task<IActionResult> ReleaseManager(Guid admissionId)
     {
-        if (!IsStaff())
+        if (!IsMainManagerOrAdmin())
             return ForbiddenRedirect();
 
         var result = await _staffApiService.ReleaseManagerAsync(admissionId);

@@ -14,6 +14,8 @@ public interface IStaffApiService
     Task<ApiResult<string>> DeleteManagerAsync(Guid id);
 
     Task<ApiResult<PagedAdmissionsViewModel>> GetAdmissionsAsync(StaffAdmissionsFilterViewModel filter);
+    Task<ApiResult<string>> TakeAdmissionAsync(Guid admissionId);
+    Task<ApiResult<string>> ReleaseOwnAdmissionAsync(Guid admissionId);
     Task<ApiResult<string>> AssignManagerAsync(AssignManagerViewModel model);
     Task<ApiResult<string>> ReleaseManagerAsync(Guid admissionId);
     Task<ApiResult<string>> UpdateAdmissionStatusAsync(UpdateAdmissionStatusViewModel model);

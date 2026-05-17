@@ -6,6 +6,14 @@
         .Where(x => !selectedProgramIds.Contains(x.Id))
         .OrderBy(x => x.Title)
         .ToList();
+
+    var genderText = Model.Profile == null
+        ? "-"
+        : Model.Profile.Gender == 0
+            ? "Мужчина"
+            : Model.Profile.Gender == 1
+                ? "Женщина"
+                : "Не указано";
 }
 
 <h2>Карточка абитуриента</h2>
@@ -33,7 +41,7 @@ else
             <p><strong>Email:</strong> @Model.Profile.Email</p>
             <p><strong>Телефон:</strong> @Model.Profile.Phone</p>
             <p><strong>Дата рождения:</strong> @Model.Profile.BirthDate.ToLocalTime()</p>
-            <p><strong>Пол:</strong> @Model.Profile.Gender</p>
+            <p><strong>Пол:</strong> @genderText</p>
             <p><strong>Гражданство:</strong> @Model.Profile.Citizenship</p>
         </div>
     </div>

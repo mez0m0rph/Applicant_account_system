@@ -1,6 +1,7 @@
 @model List<WebApp.Models.Manager.ManagerViewModel>
 @{
     ViewData["Title"] = "Менеджеры";
+    var isAdmin = (ViewBag.IsAdmin as bool?) ?? false;
 }
 
 <h2>Менеджеры</h2>
@@ -10,9 +11,12 @@
     <div class="alert alert-info">@TempData["Message"]</div>
 }
 
-<p>
-    <a asp-action="CreateManager" class="btn btn-success">Создать менеджера</a>
-</p>
+@if (isAdmin)
+{
+    <p>
+        <a asp-action="CreateManager" class="btn btn-success">Создать менеджера</a>
+    </p>
+}
 
 @if (!Model.Any())
 {
@@ -28,7 +32,10 @@ else
                 <th>Роль</th>
                 <th>Факультет</th>
                 <th>Создан</th>
-                <th>Действия</th>
+                @if (isAdmin)
+                {
+                    <th>Действия</th>
+                }
             </tr>
         </thead>
         <tbody>
@@ -40,13 +47,16 @@ else
                 <td>@m.Role</td>
                 <td>@m.Faculty</td>
                 <td>@m.CreatedAt.ToLocalTime()</td>
-                <td>
-                    <a asp-action="EditManager" asp-route-id="@m.Id" class="btn btn-primary btn-sm">Редактировать</a>
-                    <form asp-action="DeleteManager" method="post" class="d-inline">
-                        <input type="hidden" name="id" value="@m.Id" />
-                        <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
-                    </form>
-                </td>
+                @if (isAdmin)
+                {
+                    <td>
+                        <a asp-action="EditManager" asp-route-id="@m.Id" class="btn btn-primary btn-sm">Редактировать</a>
+                        <form asp-action="DeleteManager" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@m.Id" />
+                            <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                        </form>
+                    </td>
+                }
             </tr>
         }
         </tbody>

@@ -5,30 +5,36 @@
 
 <h2>Редактировать менеджера</h2>
 
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
 <form asp-action="EditManager" method="post">
     <input type="hidden" asp-for="Id" />
     <input type="hidden" asp-for="UserId" />
 
     <div class="mb-3">
-        <label class="form-label">ФИО</label>
+        <label asp-for="FullName" class="form-label">ФИО</label>
         <input asp-for="FullName" class="form-control" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Email</label>
+        <label asp-for="Email" class="form-label">Email</label>
         <input asp-for="Email" class="form-control" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Роль</label>
+        <label asp-for="Role" class="form-label">Роль</label>
         <select asp-for="Role" class="form-control">
             <option value="Manager">Manager</option>
             <option value="MainManager">MainManager</option>
+            <option value="Admin">Admin</option>
         </select>
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Факультет</label>
+        <label asp-for="Faculty" class="form-label">Факультет</label>
         <input asp-for="Faculty" class="form-control" />
     </div>
 

@@ -17,6 +17,9 @@ public interface IAdmissionService
     Task UpdateProgramPriorityForStaffAsync(Guid admissionId, Guid programId, int priority, Guid? currentUserId, string? currentRole);
     Task RemoveProgramForStaffAsync(Guid admissionId, Guid programId, Guid? currentUserId, string? currentRole);
 
+    Task TakeAdmissionAsync(Guid admissionId, Guid managerUserId);
+    Task ReleaseOwnAdmissionAsync(Guid admissionId, Guid managerUserId);
+
     Task AssignManagerAsync(Guid admissionId, Guid managerUserId, string managerEmail, Guid? currentUserId, string? currentRole);
     Task ReleaseManagerAsync(Guid admissionId, Guid? currentUserId, string? currentRole);
     Task UpdateStatusAsync(Guid admissionId, string status, Guid? currentUserId, string? currentRole);

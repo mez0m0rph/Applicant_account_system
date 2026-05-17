@@ -1,24 +1,23 @@
 @model WebApp.Models.Auth.LoginViewModel
-
 @{
     ViewData["Title"] = "Вход";
 }
 
 <h2>Вход</h2>
 
-@if (ViewBag.Error != null)
+@if (TempData["Message"] != null)
 {
-    <div class="alert alert-danger">@ViewBag.Error</div>
+    <div class="alert alert-danger">@TempData["Message"]</div>
 }
 
 <form asp-action="Login" method="post">
     <div class="mb-3">
-        <label class="form-label">Email</label>
+        <label asp-for="Email" class="form-label">Email</label>
         <input asp-for="Email" class="form-control" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Пароль</label>
+        <label asp-for="Password" class="form-label">Пароль</label>
         <input asp-for="Password" type="password" class="form-control" />
     </div>
 

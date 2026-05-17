@@ -64,25 +64,6 @@ public class AdmissionRepository : IAdmissionRepository
             admissions = admissions.Where(x => admissionIds.Contains(x.Id));
         }
 
-        if (query.Faculties.Any())
-        {
-            var normalizedFaculties = query.Faculties
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Select(x => x.Trim().ToLower())
-                .ToList();
-
-            if (normalizedFaculties.Any())
-            {
-                var matchingAdmissionIds =
-                    from ap in _context.AdmissionPrograms
-                    join sp in _context.Set<ProgramStub>() on ap.ProgramId equals sp.Id
-                    where normalizedFaculties.Contains(sp.Faculty.ToLower())
-                    select ap.AdmissionId;
-
-                admissions = admissions.Where(x => matchingAdmissionIds.Contains(x.Id));
-            }
-        }
-
         admissions = (query.SortBy?.ToLower(), query.SortDirection?.ToLower()) switch
         {
             ("updatedat", "asc") => admissions.OrderBy(x => x.UpdatedAt),
@@ -146,9 +127,4 @@ public class AdmissionRepository : IAdmissionRepository
         await _context.SaveChangesAsync();
     }
 
-    private class ProgramStub
-    {
-        public Guid Id { get; set; }
-        public string Faculty { get; set; } = string.Empty;
-    }
 }

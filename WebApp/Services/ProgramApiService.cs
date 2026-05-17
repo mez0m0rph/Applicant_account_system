@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
 using WebApp.Models.Common;
 using WebApp.Models.Program;
 
@@ -9,11 +10,13 @@ public class ProgramApiService : IProgramApiService
 {
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ProgramApiService(HttpClient httpClient, IConfiguration configuration)
+    public ProgramApiService(HttpClient httpClient, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
     {
         _httpClient = httpClient;
         _configuration = configuration;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<ApiResult<PagedProgramsViewModel>> GetAllAsync(ProgramsFilterViewModel filter)
@@ -51,5 +54,62 @@ public class ProgramApiService : IProgramApiService
 
         var data = await response.Content.ReadFromJsonAsync<PagedProgramsViewModel>();
         return ApiResult<PagedProgramsViewModel>.Ok(data ?? new PagedProgramsViewModel());
+    }
+
+    public async Task<ApiResult<string>> ImportCatalogsAsync()
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Program"];
+        var response = await _httpClient.PostAsync($"{baseUrl}/programs/import", null);
+        var content = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode
+            ? ApiResult<string>.Ok(ReadMessage(content, "Импорт завершен"))
+            : ApiResult<string>.Fail(ReadMessage(content, "Ошибка импорта"));
+    }
+
+    public async Task<ApiResult<ProgramImportStatusViewModel>> GetImportStatusAsync()
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Program"];
+        var response = await _httpClient.GetAsync($"{baseUrl}/programs/import/status");
+        var content = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+            return ApiResult<ProgramImportStatusViewModel>.Fail(ReadMessage(content, "Ошибка получения статуса импорта"));
+
+        var data = await response.Content.ReadFromJsonAsync<ProgramImportStatusViewModel>();
+        return ApiResult<ProgramImportStatusViewModel>.Ok(data ?? new ProgramImportStatusViewModel());
+    }
+
+    private static string ReadMessage(string? content, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return fallback;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(content);
+            var root = doc.RootElement;
+
+            if (root.ValueKind == JsonValueKind.Object)
+            {
+                if (root.TryGetProperty("error", out var errorProp))
+                    return errorProp.GetString() ?? fallback;
+
+                if (root.TryGetProperty("message", out var messageProp))
+                    return messageProp.GetString() ?? fallback;
+
+                if (root.TryGetProperty("imported", out var importedProp))
+                    return $"Импортировано записей: {importedProp.GetInt32()}";
+            }
+        }
+        catch
+        {
+        }
+
+        return content;
     }
 }

@@ -13,134 +13,32 @@ public class AdmissionServiceImpl : IAdmissionService
 {
     private readonly IAdmissionRepository _repository;
     private readonly IMessagePublisher _messagePublisher;
-    private readonly int _maxPrograms;
     private readonly IProgramCatalogClient _programCatalogClient;
-    private readonly IDocumentCatalogClient _documentCatalogClient;
     private readonly IApplicantCatalogClient _applicantCatalogClient;
+    private readonly IManagerCatalogClient _managerCatalogClient;
+    private readonly IConfiguration _configuration;
 
     public AdmissionServiceImpl(
         IAdmissionRepository repository,
         IMessagePublisher messagePublisher,
-        IConfiguration configuration,
         IProgramCatalogClient programCatalogClient,
-        IDocumentCatalogClient documentCatalogClient,
-        IApplicantCatalogClient applicantCatalogClient)
+        IApplicantCatalogClient applicantCatalogClient,
+        IManagerCatalogClient managerCatalogClient,
+        IConfiguration configuration)
     {
         _repository = repository;
         _messagePublisher = messagePublisher;
-        _maxPrograms = configuration.GetValue<int>("AdmissionSettings:MaxPrograms", 5);
         _programCatalogClient = programCatalogClient;
-        _documentCatalogClient = documentCatalogClient;
         _applicantCatalogClient = applicantCatalogClient;
-    }
-
-    private static void EnsureAdmissionEditable(Admission admission)
-    {
-        if (admission.Status == AdmissionStatus.Closed)
-            throw new Exception("Заявление закрыто и не может быть изменено");
-    }
-
-    private static void EnsurePriorityValid(int priority)
-    {
-        if (priority <= 0)
-            throw new Exception("Приоритет должен быть больше 0");
-    }
-
-    private static void EnsurePriorityUnique(IEnumerable<AdmissionProgram> programs, Guid programId, int priority)
-    {
-        if (programs.Any(x => x.ProgramId != programId && x.Priority == priority))
-            throw new Exception("Такой приоритет уже занят другой программой");
-    }
-
-    private static string NormalizeEducationLevel(string? level)
-    {
-        return (level ?? string.Empty).Trim().ToLowerInvariant();
-    }
-
-    private static bool AreEducationLevelsCompatible(string existingLevel, string newLevel)
-    {
-        var left = NormalizeEducationLevel(existingLevel);
-        var right = NormalizeEducationLevel(newLevel);
-
-        if (left == right)
-            return true;
-
-        var pair = new HashSet<string> { left, right };
-
-        if (pair.SetEquals(new[] { "бакалавриат", "специалитет" }))
-            return true;
-
-        return false;
-    }
-
-    private static bool IsProgramAllowedByEducationDocument(string documentLevel, string programLevel)
-    {
-        var doc = NormalizeEducationLevel(documentLevel);
-        var program = NormalizeEducationLevel(programLevel);
-
-        if (string.IsNullOrWhiteSpace(doc) || string.IsNullOrWhiteSpace(program))
-            return true;
-
-        if (doc == program)
-            return true;
-
-        return doc switch
-        {
-            "бакалавриат" => program is "бакалавриат" or "специалитет" or "магистратура",
-            "специалитет" => program is "специалитет" or "магистратура" or "аспирантура",
-            "магистратура" => program is "магистратура" or "аспирантура",
-            "аспирантура" => program is "аспирантура",
-            _ => true
-        };
-    }
-
-    private static bool IsPrivilegedRole(string? role)
-    {
-        return string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(role, "MainManager", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool IsManagerRole(string? role)
-    {
-        return string.Equals(role, "Manager", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static void EnsureCanManageAdmission(Admission admission, Guid? currentUserId, string? currentRole)
-    {
-        if (IsPrivilegedRole(currentRole))
-            return;
-
-        if (IsManagerRole(currentRole) && currentUserId.HasValue && admission.AssignedManagerUserId == currentUserId.Value)
-            return;
-
-        throw new Exception("Недостаточно прав для изменения этого заявления");
-    }
-
-    private async Task EnsureProgramAllowedByEducationDocumentAsync(Guid applicantUserId, string newProgramEducationLevel)
-    {
-        var documents = await _documentCatalogClient.GetByApplicantUserIdAsync(applicantUserId);
-
-        var educationDocument = documents.FirstOrDefault(d =>
-            string.Equals(d.Type, "EducationDocument", StringComparison.OrdinalIgnoreCase));
-
-        if (educationDocument == null || string.IsNullOrWhiteSpace(educationDocument.EducationLevel))
-            return;
-
-        if (!IsProgramAllowedByEducationDocument(educationDocument.EducationLevel, newProgramEducationLevel))
-            throw new Exception("Выбранная программа не соответствует уровню документа об образовании");
-    }
-
-    private async Task<string> GetApplicantFullNameAsync(Guid applicantUserId)
-    {
-        var applicant = await _applicantCatalogClient.GetByUserIdAsync(applicantUserId);
-        return applicant?.FullName ?? string.Empty;
+        _managerCatalogClient = managerCatalogClient;
+        _configuration = configuration;
     }
 
     public async Task CreateAsync(Guid applicantUserId, string applicantEmail)
     {
         var existing = await _repository.GetByApplicantUserIdAsync(applicantUserId);
         if (existing != null)
-            throw new Exception("Заявление уже подано");
+            throw new Exception("Заявление уже существует");
 
         var admission = new Admission
         {
@@ -158,35 +56,29 @@ public class AdmissionServiceImpl : IAdmissionService
     public async Task<AdmissionResponse?> GetMyAsync(Guid applicantUserId)
     {
         var admission = await _repository.GetByApplicantUserIdAsync(applicantUserId);
-        if (admission == null)
-            return null;
-
-        return await MapAsync(admission);
+        return admission == null ? null : await MapAsync(admission);
     }
 
     public async Task<List<AdmissionResponse>> GetAllAsync()
     {
-        var items = await _repository.GetAllAsync();
+        var admissions = await _repository.GetAllAsync();
         var result = new List<AdmissionResponse>();
 
-        foreach (var item in items)
-            result.Add(await MapAsync(item));
+        foreach (var admission in admissions)
+            result.Add(await MapAsync(admission));
 
         return result;
     }
 
     public async Task<PagedAdmissionsResponse> GetPagedAsync(GetAdmissionsQuery query, Guid? currentUserId, string? currentRole)
     {
-        var page = query.Page < 1 ? 1 : query.Page;
-        var pageSize = query.PageSize < 1 ? 10 : query.PageSize;
+        if (string.Equals(currentRole, "Manager", StringComparison.OrdinalIgnoreCase) && query.OnlyMine && currentUserId.HasValue)
+            query.AssignedManagerUserId = currentUserId;
 
-        if (query.OnlyMine && currentUserId.HasValue)
-            query.AssignedManagerUserId = currentUserId.Value;
-
-        var (items, totalCount) = await _repository.GetPagedAsync(query);
-
+        var result = await _repository.GetPagedAsync(query);
         var mapped = new List<AdmissionResponse>();
-        foreach (var item in items)
+
+        foreach (var item in result.Items)
             mapped.Add(await MapAsync(item));
 
         if (!string.IsNullOrWhiteSpace(query.Search))
@@ -196,17 +88,18 @@ public class AdmissionServiceImpl : IAdmissionService
                     x.ApplicantEmail.ToLowerInvariant().Contains(search) ||
                     x.ApplicantFullName.ToLowerInvariant().Contains(search))
                 .ToList();
-
-            totalCount = mapped.Count;
         }
+
+        var page = query.Page < 1 ? 1 : query.Page;
+        var pageSize = query.PageSize < 1 ? 10 : query.PageSize;
 
         return new PagedAdmissionsResponse
         {
             Items = mapped,
             Page = page,
             PageSize = pageSize,
-            TotalCount = totalCount,
-            TotalPages = totalCount == 0 ? 0 : (int)Math.Ceiling(totalCount / (double)pageSize)
+            TotalCount = result.TotalCount,
+            TotalPages = result.TotalCount == 0 ? 0 : (int)Math.Ceiling(result.TotalCount / (double)pageSize)
         };
     }
 
@@ -214,45 +107,43 @@ public class AdmissionServiceImpl : IAdmissionService
     {
         var admission = await _repository.GetByApplicantUserIdAsync(applicantUserId);
         if (admission == null)
-            throw new Exception("Сначала подайте заявление");
+            throw new Exception("Заявление не найдено");
 
         EnsureAdmissionEditable(admission);
         EnsurePriorityValid(priority);
 
         var currentPrograms = await _repository.GetProgramsByAdmissionIdAsync(admission.Id);
-        if (currentPrograms.Count >= _maxPrograms)
-            throw new Exception($"Нельзя выбрать больше {_maxPrograms} программ");
+        var maxPrograms = _configuration.GetValue<int?>("AdmissionSettings:MaxPrograms") ?? 5;
+
+        if (currentPrograms.Count >= maxPrograms)
+            throw new Exception($"Нельзя выбрать больше {maxPrograms} программ");
 
         if (currentPrograms.Any(x => x.ProgramId == programId))
-            throw new Exception("Программа уже добавлена в заявление");
+            throw new Exception("Программа уже добавлена");
 
-        var newProgram = await _programCatalogClient.GetByIdAsync(programId);
-        if (newProgram == null)
-            throw new Exception("Программа не найдена");
+        EnsurePriorityUnique(currentPrograms, null, priority);
 
-        await EnsureProgramAllowedByEducationDocumentAsync(applicantUserId, newProgram.EducationLevel);
-
-        foreach (var selectedProgram in currentPrograms)
+        var selectedLevels = new List<string>();
+        foreach (var item in currentPrograms)
         {
-            var existingProgram = await _programCatalogClient.GetByIdAsync(selectedProgram.ProgramId);
-            if (existingProgram == null)
-                continue;
-
-            if (!AreEducationLevelsCompatible(existingProgram.EducationLevel, newProgram.EducationLevel))
-                throw new Exception("Нельзя выбирать программы с несовместимыми уровнями образования");
+            var dto = await _programCatalogClient.GetByIdAsync(item.ProgramId);
+            if (dto != null && !string.IsNullOrWhiteSpace(dto.EducationLevel))
+                selectedLevels.Add(dto.EducationLevel);
         }
 
-        EnsurePriorityUnique(currentPrograms, programId, priority);
+        var program = await _programCatalogClient.GetByIdAsync(programId);
+        if (program == null)
+            throw new Exception("Программа не найдена");
 
-        var item = new AdmissionProgram
+        EnsureEducationLevelRules(selectedLevels, program.EducationLevel ?? string.Empty);
+
+        await _repository.AddProgramAsync(new AdmissionProgram
         {
             Id = Guid.NewGuid(),
             AdmissionId = admission.Id,
             ProgramId = programId,
             Priority = priority
-        };
-
-        await _repository.AddProgramAsync(item);
+        });
 
         admission.UpdatedAt = DateTime.UtcNow;
         await _repository.UpdateAdmissionAsync(admission);
@@ -329,13 +220,68 @@ public class AdmissionServiceImpl : IAdmissionService
         await RemoveProgramAsync(admission.ApplicantUserId, programId);
     }
 
+    public async Task TakeAdmissionAsync(Guid admissionId, Guid managerUserId)
+    {
+        var admission = await _repository.GetByIdAsync(admissionId);
+        if (admission == null)
+            throw new Exception("Заявление не найдено");
+
+        if (admission.AssignedManagerUserId.HasValue && admission.AssignedManagerUserId.Value != managerUserId)
+            throw new Exception("Поступление уже назначено другому менеджеру");
+
+        var manager = await _managerCatalogClient.GetByUserIdAsync(managerUserId);
+
+        admission.AssignedManagerUserId = managerUserId;
+        admission.Status = AdmissionStatus.OnReview;
+        admission.UpdatedAt = DateTime.UtcNow;
+
+        await _repository.UpdateAdmissionAsync(admission);
+
+        await _messagePublisher.PublishAsync(new NotificationRequestedEvent
+        {
+            UserId = admission.ApplicantUserId,
+            Email = admission.ApplicantEmail,
+            Subject = "Поступление взято в работу",
+            Message = "Ваше заявление взято в работу менеджером."
+        });
+
+        if (manager != null && !string.IsNullOrWhiteSpace(manager.Email))
+        {
+            await _messagePublisher.PublishAsync(new NotificationRequestedEvent
+            {
+                UserId = managerUserId,
+                Email = manager.Email,
+                Subject = "Вам назначено заявление",
+                Message = $"Вы взяли в работу заявление абитуриента {admission.ApplicantEmail}"
+            });
+        }
+    }
+
+    public async Task ReleaseOwnAdmissionAsync(Guid admissionId, Guid managerUserId)
+    {
+        var admission = await _repository.GetByIdAsync(admissionId);
+        if (admission == null)
+            throw new Exception("Заявление не найдено");
+
+        if (admission.AssignedManagerUserId != managerUserId)
+            throw new Exception("Можно отказаться только от своего поступления");
+
+        admission.AssignedManagerUserId = null;
+        admission.UpdatedAt = DateTime.UtcNow;
+
+        await _repository.UpdateAdmissionAsync(admission);
+    }
+
     public async Task AssignManagerAsync(Guid admissionId, Guid managerUserId, string managerEmail, Guid? currentUserId, string? currentRole)
     {
         var admission = await _repository.GetByIdAsync(admissionId);
         if (admission == null)
             throw new Exception("Заявление не найдено");
 
-        EnsureCanManageAdmission(admission, currentUserId, currentRole);
+        EnsurePrivilegedStaff(currentRole);
+
+        if (admission.AssignedManagerUserId.HasValue)
+            throw new Exception("Менеджера можно назначить только на свободное поступление");
 
         admission.AssignedManagerUserId = managerUserId;
         admission.Status = AdmissionStatus.OnReview;
@@ -366,7 +312,7 @@ public class AdmissionServiceImpl : IAdmissionService
         if (admission == null)
             throw new Exception("Заявление не найдено");
 
-        EnsureCanManageAdmission(admission, currentUserId, currentRole);
+        EnsurePrivilegedStaff(currentRole);
 
         admission.AssignedManagerUserId = null;
         admission.UpdatedAt = DateTime.UtcNow;
@@ -399,26 +345,104 @@ public class AdmissionServiceImpl : IAdmissionService
         });
     }
 
+    private static void EnsureAdmissionEditable(Admission admission)
+    {
+        if (admission.Status == AdmissionStatus.Closed)
+            throw new Exception("Заявление закрыто для редактирования");
+    }
+
+    private static void EnsurePriorityValid(int priority)
+    {
+        if (priority < 1)
+            throw new Exception("Приоритет должен быть больше 0");
+    }
+
+    private static void EnsurePriorityUnique(List<AdmissionProgram> currentPrograms, Guid? currentProgramId, int priority)
+    {
+        if (currentPrograms.Any(x => x.Priority == priority && x.ProgramId != currentProgramId))
+            throw new Exception("Программа с таким приоритетом уже существует");
+    }
+
+    private static void EnsureEducationLevelRules(List<string> selectedLevels, string newLevel)
+    {
+        if (selectedLevels.Count == 0)
+            return;
+
+        var distinctLevels = selectedLevels
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (distinctLevels.Count > 1)
+            throw new Exception("Уже выбраны программы разных ступеней обучения");
+
+        var selectedLevel = distinctLevels.FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(selectedLevel) &&
+            !string.Equals(selectedLevel, newLevel, StringComparison.OrdinalIgnoreCase))
+            throw new Exception("Нельзя выбрать программы разных ступеней обучения");
+    }
+
+    private static bool IsPrivilegedRole(string? currentRole)
+    {
+        return string.Equals(currentRole, "MainManager", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(currentRole, "Admin", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void EnsurePrivilegedStaff(string? currentRole)
+    {
+        if (!IsPrivilegedRole(currentRole))
+            throw new Exception("Недостаточно прав");
+    }
+
+    private static void EnsureCanManageAdmission(Admission admission, Guid? currentUserId, string? currentRole)
+    {
+        if (IsPrivilegedRole(currentRole))
+            return;
+
+        if (string.Equals(currentRole, "Manager", StringComparison.OrdinalIgnoreCase)
+            && currentUserId.HasValue
+            && admission.AssignedManagerUserId == currentUserId.Value)
+            return;
+
+        throw new Exception("Недостаточно прав для изменения этого заявления");
+    }
+
     private async Task<AdmissionResponse> MapAsync(Admission admission)
     {
         var programs = await _repository.GetProgramsByAdmissionIdAsync(admission.Id);
-        var applicantFullName = await GetApplicantFullNameAsync(admission.ApplicantUserId);
+        var applicant = await _applicantCatalogClient.GetByUserIdAsync(admission.ApplicantUserId);
+        var manager = admission.AssignedManagerUserId.HasValue
+            ? await _managerCatalogClient.GetByUserIdAsync(admission.AssignedManagerUserId.Value)
+            : null;
+
+        var mappedPrograms = new List<AdmissionProgramItemResponse>();
+        foreach (var x in programs)
+        {
+            var program = await _programCatalogClient.GetByIdAsync(x.ProgramId);
+
+            mappedPrograms.Add(new AdmissionProgramItemResponse
+            {
+                ProgramId = x.ProgramId,
+                Priority = x.Priority,
+                ProgramCode = program?.Code ?? string.Empty,
+                ProgramTitle = program?.Title ?? string.Empty
+            });
+        }
 
         return new AdmissionResponse
         {
             Id = admission.Id,
             ApplicantUserId = admission.ApplicantUserId,
             ApplicantEmail = admission.ApplicantEmail,
-            ApplicantFullName = applicantFullName,
+            ApplicantFullName = applicant?.FullName ?? string.Empty,
             Status = admission.Status.ToString(),
             AssignedManagerUserId = admission.AssignedManagerUserId,
+            AssignedManagerName = manager?.FullName ?? string.Empty,
+            AssignedManagerEmail = manager?.Email ?? string.Empty,
             CreatedAt = admission.CreatedAt,
             UpdatedAt = admission.UpdatedAt,
-            Programs = programs.Select(x => new AdmissionProgramItemResponse
-            {
-                ProgramId = x.ProgramId,
-                Priority = x.Priority
-            }).ToList()
+            Programs = mappedPrograms
         };
     }
 }

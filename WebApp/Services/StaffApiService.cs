@@ -13,10 +13,7 @@ public class StaffApiService : IStaffApiService
     private readonly IConfiguration _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public StaffApiService(
-        HttpClient httpClient,
-        IConfiguration configuration,
-        IHttpContextAccessor httpContextAccessor)
+    public StaffApiService(HttpClient httpClient, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
     {
         _httpClient = httpClient;
         _configuration = configuration;
@@ -30,37 +27,34 @@ public class StaffApiService : IStaffApiService
         var authBaseUrl = _configuration["ApiUrls:Auth"];
         var managerBaseUrl = _configuration["ApiUrls:Manager"];
 
-        var createUserPayload = new
+        var createStaffResponse = await _httpClient.PostAsJsonAsync($"{authBaseUrl}/auth/staff", new
         {
             email = model.Email,
             password = model.Password,
             role = model.Role
-        };
+        });
 
-        var authResponse = await _httpClient.PostAsJsonAsync($"{authBaseUrl}/auth/staff", createUserPayload);
-        var authContent = await authResponse.Content.ReadAsStringAsync();
+        var createStaffContent = await createStaffResponse.Content.ReadAsStringAsync();
+        if (!createStaffResponse.IsSuccessStatusCode)
+            return ApiResult<string>.Fail(ReadMessage(createStaffContent, "Ошибка создания пользователя"));
 
-        if (!authResponse.IsSuccessStatusCode)
-            return ApiResult<string>.Fail(ReadMessage(authContent, "Ошибка создания пользователя staff"));
+        using var staffJson = JsonDocument.Parse(createStaffContent);
+        var userId = staffJson.RootElement.GetProperty("id").GetGuid();
 
-        using var authJson = JsonDocument.Parse(authContent);
-        var userId = authJson.RootElement.GetProperty("userId").GetGuid();
-
-        var managerPayload = new
+        var createManagerResponse = await _httpClient.PostAsJsonAsync($"{managerBaseUrl}/managers", new
         {
             userId,
             fullName = model.FullName,
             email = model.Email,
             role = model.Role,
             faculty = model.Faculty
-        };
+        });
 
-        var managerResponse = await _httpClient.PostAsJsonAsync($"{managerBaseUrl}/managers", managerPayload);
-        var managerContent = await managerResponse.Content.ReadAsStringAsync();
+        var createManagerContent = await createManagerResponse.Content.ReadAsStringAsync();
 
-        return managerResponse.IsSuccessStatusCode
-            ? ApiResult<string>.Ok(ReadMessage(managerContent, "Менеджер создан"))
-            : ApiResult<string>.Fail(ReadMessage(managerContent, "Ошибка создания менеджера"));
+        return createManagerResponse.IsSuccessStatusCode
+            ? ApiResult<string>.Ok(ReadMessage(createManagerContent, "Менеджер создан"))
+            : ApiResult<string>.Fail(ReadMessage(createManagerContent, "Ошибка создания менеджера"));
     }
 
     public async Task<ApiResult<List<ManagerViewModel>>> GetManagersAsync()
@@ -172,6 +166,32 @@ public class StaffApiService : IStaffApiService
 
         var data = await response.Content.ReadFromJsonAsync<PagedAdmissionsViewModel>();
         return ApiResult<PagedAdmissionsViewModel>.Ok(data ?? new PagedAdmissionsViewModel());
+    }
+
+    public async Task<ApiResult<string>> TakeAdmissionAsync(Guid admissionId)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Admission"];
+        var response = await _httpClient.PostAsync($"{baseUrl}/admissions/{admissionId}/take", null);
+        var content = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode
+            ? ApiResult<string>.Ok(ReadMessage(content, "Поступление взято в работу"))
+            : ApiResult<string>.Fail(ReadMessage(content, "Ошибка взятия поступления"));
+    }
+
+    public async Task<ApiResult<string>> ReleaseOwnAdmissionAsync(Guid admissionId)
+    {
+        ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
+
+        var baseUrl = _configuration["ApiUrls:Admission"];
+        var response = await _httpClient.PostAsync($"{baseUrl}/admissions/{admissionId}/release-own", null);
+        var content = await response.Content.ReadAsStringAsync();
+
+        return response.IsSuccessStatusCode
+            ? ApiResult<string>.Ok(ReadMessage(content, "Поступление возвращено в общий пул"))
+            : ApiResult<string>.Fail(ReadMessage(content, "Ошибка возврата поступления"));
     }
 
     public async Task<ApiResult<string>> AssignManagerAsync(AssignManagerViewModel model)

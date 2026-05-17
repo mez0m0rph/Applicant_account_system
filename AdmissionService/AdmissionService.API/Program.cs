@@ -20,6 +20,7 @@ builder.Services.AddScoped<IAdmissionService, AdmissionServiceImpl>();
 builder.Services.AddHttpClient<IProgramCatalogClient, ProgramCatalogClient>();
 builder.Services.AddHttpClient<IDocumentCatalogClient, DocumentCatalogClient>();
 builder.Services.AddHttpClient<IApplicantCatalogClient, ApplicantCatalogClient>();
+builder.Services.AddHttpClient<IManagerCatalogClient, ManagerCatalogClient>();
 
 builder.Services.AddRabbitMqMessaging(builder.Configuration);
 

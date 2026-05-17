@@ -2,42 +2,10 @@
 @{
     ViewData["Title"] = "Все поступления";
     var admissions = Model.PagedAdmissions.Items;
-    var facultyOptions = Model.Programs
-        .Select(x => x.Faculty)
-        .Where(x => !string.IsNullOrWhiteSpace(x))
-        .Distinct()
-        .OrderBy(x => x)
-        .ToList();
-
-    string BuildPageUrl(int pageNumber)
-    {
-        var queryParts = new List<string>();
-
-        if (!string.IsNullOrWhiteSpace(Model.Filter.Search))
-            queryParts.Add($"Search={Uri.EscapeDataString(Model.Filter.Search)}");
-
-        if (Model.Filter.ProgramId.HasValue)
-            queryParts.Add($"ProgramId={Model.Filter.ProgramId.Value}");
-
-        foreach (var faculty in Model.Filter.Faculties)
-            queryParts.Add($"Faculties={Uri.EscapeDataString(faculty)}");
-
-        if (!string.IsNullOrWhiteSpace(Model.Filter.Status))
-            queryParts.Add($"Status={Uri.EscapeDataString(Model.Filter.Status)}");
-
-        if (Model.Filter.OnlyUnassigned)
-            queryParts.Add("OnlyUnassigned=true");
-
-        if (Model.Filter.OnlyMine)
-            queryParts.Add("OnlyMine=true");
-
-        queryParts.Add($"SortBy={Uri.EscapeDataString(Model.Filter.SortBy)}");
-        queryParts.Add($"SortDirection={Uri.EscapeDataString(Model.Filter.SortDirection)}");
-        queryParts.Add($"Page={pageNumber}");
-        queryParts.Add($"PageSize={Model.Filter.PageSize}");
-
-        return Url.Action("Admissions", "Staff") + "?" + string.Join("&", queryParts);
-    }
+    var currentRole = (ViewBag.CurrentRole as string) ?? "";
+    var isManager = currentRole == "Manager";
+    var isPrivileged = currentRole == "MainManager" || currentRole == "Admin";
+    var currentUserId = Context.Session.GetString("UserId");
 }
 
 <h2>Все поступления</h2>
@@ -51,30 +19,6 @@
     <div class="col-md-3">
         <label class="form-label">Поиск по email или ФИО</label>
         <input type="text" name="Search" value="@Model.Filter.Search" class="form-control" />
-    </div>
-
-    <div class="col-md-3">
-        <label class="form-label">Программа</label>
-        <select name="ProgramId" class="form-control">
-            <option value="">Все</option>
-            @foreach (var program in Model.Programs.OrderBy(x => x.Title))
-            {
-                <option value="@program.Id" selected="@(Model.Filter.ProgramId == program.Id)">
-                    @program.Code - @program.Title
-                </option>
-            }
-        </select>
-    </div>
-
-    <div class="col-md-4">
-        <label class="form-label">Факультеты</label>
-        <select name="Faculties" class="form-control" multiple size="6">
-            @foreach (var faculty in facultyOptions)
-            {
-                <option value="@faculty" selected="@(Model.Filter.Faculties.Contains(faculty))">@faculty</option>
-            }
-        </select>
-        <small class="text-muted">Можно выбрать несколько факультетов</small>
     </div>
 
     <div class="col-md-2">
@@ -107,13 +51,13 @@
         </select>
     </div>
 
-    <div class="col-md-2 d-flex align-items-end">
-        <div>
+    <div class="col-md-3 d-flex align-items-end">
+        <div class="d-flex gap-3">
             <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" name="OnlyUnassigned" value="true" @(Model.Filter.OnlyUnassigned ? "checked" : "") />
                 <label class="form-check-label">Свободные</label>
             </div>
-            <div class="form-check">
+            <div class="form-check mb-2">
                 <input class="form-check-input" type="checkbox" name="OnlyMine" value="true" @(Model.Filter.OnlyMine ? "checked" : "") />
                 <label class="form-check-label">Только мои</label>
             </div>
@@ -139,28 +83,44 @@ else
         Найдено заявлений: @Model.PagedAdmissions.TotalCount
     </div>
 
+    <div class="table-responsive">
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
                 <th>ФИО</th>
                 <th>Email</th>
+                <th>Карточка</th>
                 <th>Status</th>
                 <th>Programs</th>
                 <th>Менеджер</th>
                 <th>CreatedAt</th>
                 <th>UpdatedAt</th>
-                <th>Открыть</th>
-                <th>Назначить менеджера</th>
-                <th>Снять менеджера</th>
+                <th>Действие с поступлением</th>
+                @if (isPrivileged)
+                {
+                    <th>Назначить менеджера</th>
+                    <th>Снять менеджера</th>
+                }
                 <th>Изменить статус</th>
             </tr>
         </thead>
         <tbody>
         @foreach (var a in admissions)
         {
+            var assignedToCurrent = !string.IsNullOrWhiteSpace(currentUserId)
+                && a.AssignedManagerUserId.HasValue
+                && a.AssignedManagerUserId.Value.ToString().Equals(currentUserId, StringComparison.OrdinalIgnoreCase);
+
             <tr>
-                <td>@a.ApplicantFullName</td>
+                <td>@(string.IsNullOrWhiteSpace(a.ApplicantFullName) ? "-" : a.ApplicantFullName)</td>
                 <td>@a.ApplicantEmail</td>
+                <td>
+                    <a asp-action="Details"
+                       asp-route-applicantUserId="@a.ApplicantUserId"
+                       class="btn btn-sm btn-outline-primary">
+                        Открыть
+                    </a>
+                </td>
                 <td>@a.Status</td>
                 <td>
                     @if (a.Programs == null || !a.Programs.Any())
@@ -193,45 +153,73 @@ else
                 </td>
                 <td>@a.CreatedAt.ToLocalTime()</td>
                 <td>@a.UpdatedAt.ToLocalTime()</td>
+
                 <td>
-                    <a asp-action="Details" asp-route-applicantUserId="@a.ApplicantUserId" class="btn btn-outline-info btn-sm">
-                        Открыть
-                    </a>
-                </td>
-                <td>
-                    @if (Model.Managers.Any())
+                    @if (isManager)
                     {
-                        <form asp-action="AssignManager" method="post">
-                            <input type="hidden" name="AdmissionId" value="@a.Id" />
-                            <select name="ManagerUserId" class="form-control mb-2">
-                                @foreach (var m in Model.Managers)
-                                {
-                                    <option value="@m.UserId">@m.FullName (@m.Email)</option>
-                                }
-                            </select>
-                            <button type="submit" class="btn btn-primary btn-sm">Назначить</button>
-                        </form>
+                        if (!a.AssignedManagerUserId.HasValue)
+                        {
+                            <form asp-action="TakeAdmission" method="post">
+                                <input type="hidden" name="admissionId" value="@a.Id" />
+                                <button type="submit" class="btn btn-primary btn-sm">Взять</button>
+                            </form>
+                        }
+                        else if (assignedToCurrent)
+                        {
+                            <form asp-action="ReleaseOwnAdmission" method="post">
+                                <input type="hidden" name="admissionId" value="@a.Id" />
+                                <button type="submit" class="btn btn-warning btn-sm">Отказаться</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Недоступно</span>
+                        }
                     }
                     else
                     {
-                        <span>Нет менеджеров</span>
+                        <span class="text-muted">—</span>
                     }
                 </td>
-                <td>
-                    <form asp-action="ReleaseManager" method="post">
-                        <input type="hidden" name="admissionId" value="@a.Id" />
-                        <button type="submit" class="btn btn-warning btn-sm">Снять</button>
-                    </form>
-                </td>
+
+                @if (isPrivileged)
+                {
+                    <td>
+                        @if (!a.AssignedManagerUserId.HasValue && Model.Managers.Any())
+                        {
+                            <form asp-action="AssignManager" method="post">
+                                <input type="hidden" name="admissionId" value="@a.Id" />
+                                <select name="managerUserId" class="form-control mb-2">
+                                    @foreach (var m in Model.Managers.Where(x => x.Role == "Manager"))
+                                    {
+                                        <option value="@m.UserId">@m.FullName (@m.Email)</option>
+                                    }
+                                </select>
+                                <button type="submit" class="btn btn-primary btn-sm">Назначить</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Только для свободных</span>
+                        }
+                    </td>
+                    <td>
+                        <form asp-action="ReleaseManager" method="post">
+                            <input type="hidden" name="admissionId" value="@a.Id" />
+                            <button type="submit" class="btn btn-warning btn-sm">Снять</button>
+                        </form>
+                    </td>
+                }
+
                 <td>
                     <form asp-action="UpdateAdmissionStatus" method="post">
-                        <input type="hidden" name="AdmissionId" value="@a.Id" />
-                        <select name="Status" class="form-control mb-2">
-                            <option value="Created">Created</option>
-                            <option value="OnReview">OnReview</option>
-                            <option value="Confirmed">Confirmed</option>
-                            <option value="Rejected">Rejected</option>
-                            <option value="Closed">Closed</option>
+                        <input type="hidden" name="admissionId" value="@a.Id" />
+                        <select name="status" class="form-control mb-2">
+                            <option value="Created" selected="@(a.Status == "Created")">Created</option>
+                            <option value="OnReview" selected="@(a.Status == "OnReview")">OnReview</option>
+                            <option value="Confirmed" selected="@(a.Status == "Confirmed")">Confirmed</option>
+                            <option value="Rejected" selected="@(a.Status == "Rejected")">Rejected</option>
+                            <option value="Closed" selected="@(a.Status == "Closed")">Closed</option>
                         </select>
                         <button type="submit" class="btn btn-success btn-sm">Обновить</button>
                     </form>
@@ -240,6 +228,7 @@ else
         }
         </tbody>
     </table>
+    </div>
 
     @if (Model.PagedAdmissions.TotalPages > 1)
     {
@@ -248,7 +237,18 @@ else
                 @for (int i = 1; i <= Model.PagedAdmissions.TotalPages; i++)
                 {
                     <li class="page-item @(i == Model.PagedAdmissions.Page ? "active" : "")">
-                        <a class="page-link" href="@BuildPageUrl(i)">@i</a>
+                        <a class="page-link"
+                           asp-action="Admissions"
+                           asp-route-Search="@Model.Filter.Search"
+                           asp-route-Status="@Model.Filter.Status"
+                           asp-route-OnlyUnassigned="@Model.Filter.OnlyUnassigned"
+                           asp-route-OnlyMine="@Model.Filter.OnlyMine"
+                           asp-route-SortBy="@Model.Filter.SortBy"
+                           asp-route-SortDirection="@Model.Filter.SortDirection"
+                           asp-route-Page="@i"
+                           asp-route-PageSize="@Model.Filter.PageSize">
+                            @i
+                        </a>
                     </li>
                 }
             </ul>

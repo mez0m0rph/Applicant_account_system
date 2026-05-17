@@ -34,7 +34,7 @@ public class AuthApiService : IAuthApiService
         var content = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            return ApiResult<string>.Fail(content);
+            return ApiResult<string>.Fail(ReadMessage(content, "Ошибка входа"));
 
         using var json = JsonDocument.Parse(content);
 
@@ -80,8 +80,8 @@ public class AuthApiService : IAuthApiService
         var content = await response.Content.ReadAsStringAsync();
 
         return response.IsSuccessStatusCode
-            ? ApiResult<string>.Ok(content)
-            : ApiResult<string>.Fail(content);
+            ? ApiResult<string>.Ok(ReadMessage(content, "Регистрация выполнена"))
+            : ApiResult<string>.Fail(ReadMessage(content, "Ошибка регистрации"));
     }
 
     public async Task<ApiResult<string>> ChangePasswordAsync(WebApp.Models.Account.ChangePasswordViewModel model)
@@ -98,8 +98,8 @@ public class AuthApiService : IAuthApiService
         var content = await response.Content.ReadAsStringAsync();
 
         return response.IsSuccessStatusCode
-            ? ApiResult<string>.Ok(string.IsNullOrWhiteSpace(content) ? "Пароль изменен" : content)
-            : ApiResult<string>.Fail(string.IsNullOrWhiteSpace(content) ? "Ошибка смены пароля" : content);
+            ? ApiResult<string>.Ok(ReadMessage(content, "Пароль изменен"))
+            : ApiResult<string>.Fail(ReadMessage(content, "Ошибка смены пароля"));
     }
 
     private static Dictionary<string, string> ReadJwtPayload(string jwt)
@@ -143,5 +143,34 @@ public class AuthApiService : IAuthApiService
         }
 
         return null;
+    }
+
+    private static string ReadMessage(string? content, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return fallback;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(content);
+            var root = doc.RootElement;
+
+            if (root.ValueKind == JsonValueKind.Object)
+            {
+                if (root.TryGetProperty("error", out var errorProp))
+                    return errorProp.GetString() ?? fallback;
+
+                if (root.TryGetProperty("message", out var messageProp))
+                    return messageProp.GetString() ?? fallback;
+
+                if (root.TryGetProperty("title", out var titleProp))
+                    return titleProp.GetString() ?? fallback;
+            }
+        }
+        catch
+        {
+        }
+
+        return content;
     }
 }

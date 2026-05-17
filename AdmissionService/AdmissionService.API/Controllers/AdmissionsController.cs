@@ -170,7 +170,31 @@ public class AdmissionsController : ControllerBase
         return Ok("Программа удалена из заявления");
     }
 
-    [Authorize(Roles = "Manager,MainManager,Admin")]
+    [Authorize(Roles = "Manager")]
+    [HttpPost("{id:guid}/take")]
+    public async Task<IActionResult> Take(Guid id)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (!currentUserId.HasValue)
+            return Unauthorized("Некорректный user id");
+
+        await _service.TakeAdmissionAsync(id, currentUserId.Value);
+        return Ok("Поступление взято в работу");
+    }
+
+    [Authorize(Roles = "Manager")]
+    [HttpPost("{id:guid}/release-own")]
+    public async Task<IActionResult> ReleaseOwn(Guid id)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (!currentUserId.HasValue)
+            return Unauthorized("Некорректный user id");
+
+        await _service.ReleaseOwnAdmissionAsync(id, currentUserId.Value);
+        return Ok("Поступление возвращено в общий пул");
+    }
+
+    [Authorize(Roles = "MainManager,Admin")]
     [HttpPost("{id:guid}/assign-manager")]
     public async Task<IActionResult> AssignManager(Guid id, [FromBody] AssignManagerRequest request)
     {
@@ -178,7 +202,7 @@ public class AdmissionsController : ControllerBase
         return Ok("Менеджер назначен");
     }
 
-    [Authorize(Roles = "Manager,MainManager,Admin")]
+    [Authorize(Roles = "MainManager,Admin")]
     [HttpPost("{id:guid}/release-manager")]
     public async Task<IActionResult> ReleaseManager(Guid id)
     {
