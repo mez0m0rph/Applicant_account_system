@@ -68,7 +68,7 @@ public class AdmissionsController : ControllerBase
     public async Task<IActionResult> GetAll(
         [FromQuery] string? search,
         [FromQuery] Guid? programId,
-        [FromQuery] string? faculty,
+        [FromQuery] List<string>? faculties,
         [FromQuery] string? status,
         [FromQuery] bool onlyUnassigned = false,
         [FromQuery] bool onlyMine = false,
@@ -82,7 +82,7 @@ public class AdmissionsController : ControllerBase
         {
             Search = search,
             ProgramId = programId,
-            Faculty = faculty,
+            Faculties = faculties ?? new List<string>(),
             Status = status,
             OnlyUnassigned = onlyUnassigned,
             OnlyMine = onlyMine,

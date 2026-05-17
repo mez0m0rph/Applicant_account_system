@@ -39,12 +39,6 @@ public class AdmissionRepository : IAdmissionRepository
 
         var admissions = _context.Admissions.AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(query.Search))
-        {
-            var search = query.Search.Trim().ToLower();
-            admissions = admissions.Where(x => x.ApplicantEmail.ToLower().Contains(search));
-        }
-
         if (!string.IsNullOrWhiteSpace(query.Status))
         {
             var status = query.Status.Trim().ToLower();
@@ -70,16 +64,23 @@ public class AdmissionRepository : IAdmissionRepository
             admissions = admissions.Where(x => admissionIds.Contains(x.Id));
         }
 
-        if (!string.IsNullOrWhiteSpace(query.Faculty))
+        if (query.Faculties.Any())
         {
-            var faculty = query.Faculty.Trim().ToLower();
+            var normalizedFaculties = query.Faculties
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim().ToLower())
+                .ToList();
 
-            var matchingAdmissionIds = from ap in _context.AdmissionPrograms
-                                       join sp in _context.Set<ProgramStub>() on ap.ProgramId equals sp.Id
-                                       where sp.Faculty.ToLower() == faculty
-                                       select ap.AdmissionId;
+            if (normalizedFaculties.Any())
+            {
+                var matchingAdmissionIds =
+                    from ap in _context.AdmissionPrograms
+                    join sp in _context.Set<ProgramStub>() on ap.ProgramId equals sp.Id
+                    where normalizedFaculties.Contains(sp.Faculty.ToLower())
+                    select ap.AdmissionId;
 
-            admissions = admissions.Where(x => matchingAdmissionIds.Contains(x.Id));
+                admissions = admissions.Where(x => matchingAdmissionIds.Contains(x.Id));
+            }
         }
 
         admissions = (query.SortBy?.ToLower(), query.SortDirection?.ToLower()) switch

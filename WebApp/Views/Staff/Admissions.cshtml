@@ -2,6 +2,42 @@
 @{
     ViewData["Title"] = "Все поступления";
     var admissions = Model.PagedAdmissions.Items;
+    var facultyOptions = Model.Programs
+        .Select(x => x.Faculty)
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
+
+    string BuildPageUrl(int pageNumber)
+    {
+        var queryParts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(Model.Filter.Search))
+            queryParts.Add($"Search={Uri.EscapeDataString(Model.Filter.Search)}");
+
+        if (Model.Filter.ProgramId.HasValue)
+            queryParts.Add($"ProgramId={Model.Filter.ProgramId.Value}");
+
+        foreach (var faculty in Model.Filter.Faculties)
+            queryParts.Add($"Faculties={Uri.EscapeDataString(faculty)}");
+
+        if (!string.IsNullOrWhiteSpace(Model.Filter.Status))
+            queryParts.Add($"Status={Uri.EscapeDataString(Model.Filter.Status)}");
+
+        if (Model.Filter.OnlyUnassigned)
+            queryParts.Add("OnlyUnassigned=true");
+
+        if (Model.Filter.OnlyMine)
+            queryParts.Add("OnlyMine=true");
+
+        queryParts.Add($"SortBy={Uri.EscapeDataString(Model.Filter.SortBy)}");
+        queryParts.Add($"SortDirection={Uri.EscapeDataString(Model.Filter.SortDirection)}");
+        queryParts.Add($"Page={pageNumber}");
+        queryParts.Add($"PageSize={Model.Filter.PageSize}");
+
+        return Url.Action("Admissions", "Staff") + "?" + string.Join("&", queryParts);
+    }
 }
 
 <h2>Все поступления</h2>
@@ -30,9 +66,15 @@
         </select>
     </div>
 
-    <div class="col-md-2">
-        <label class="form-label">Факультет</label>
-        <input type="text" name="Faculty" value="@Model.Filter.Faculty" class="form-control" />
+    <div class="col-md-4">
+        <label class="form-label">Факультеты</label>
+        <select name="Faculties" class="form-control" multiple size="6">
+            @foreach (var faculty in facultyOptions)
+            {
+                <option value="@faculty" selected="@(Model.Filter.Faculties.Contains(faculty))">@faculty</option>
+            }
+        </select>
+        <small class="text-muted">Можно выбрать несколько факультетов</small>
     </div>
 
     <div class="col-md-2">
@@ -200,20 +242,7 @@ else
                 @for (int i = 1; i <= Model.PagedAdmissions.TotalPages; i++)
                 {
                     <li class="page-item @(i == Model.PagedAdmissions.Page ? "active" : "")">
-                        <a class="page-link"
-                           asp-action="Admissions"
-                           asp-route-Search="@Model.Filter.Search"
-                           asp-route-ProgramId="@Model.Filter.ProgramId"
-                           asp-route-Faculty="@Model.Filter.Faculty"
-                           asp-route-Status="@Model.Filter.Status"
-                           asp-route-OnlyUnassigned="@Model.Filter.OnlyUnassigned"
-                           asp-route-OnlyMine="@Model.Filter.OnlyMine"
-                           asp-route-SortBy="@Model.Filter.SortBy"
-                           asp-route-SortDirection="@Model.Filter.SortDirection"
-                           asp-route-Page="@i"
-                           asp-route-PageSize="@Model.Filter.PageSize">
-                            @i
-                        </a>
+                        <a class="page-link" href="@BuildPageUrl(i)">@i</a>
                     </li>
                 }
             </ul>

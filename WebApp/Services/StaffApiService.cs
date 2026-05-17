@@ -141,8 +141,8 @@ public class StaffApiService : IStaffApiService
         if (filter.ProgramId.HasValue)
             query.Add($"programId={filter.ProgramId.Value}");
 
-        if (!string.IsNullOrWhiteSpace(filter.Faculty))
-            query.Add($"faculty={Uri.EscapeDataString(filter.Faculty)}");
+        foreach (var faculty in filter.Faculties.Where(x => !string.IsNullOrWhiteSpace(x)))
+            query.Add($"faculties={Uri.EscapeDataString(faculty)}");
 
         if (!string.IsNullOrWhiteSpace(filter.Status))
             query.Add($"status={Uri.EscapeDataString(filter.Status)}");

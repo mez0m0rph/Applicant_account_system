@@ -4,7 +4,7 @@ public class GetAdmissionsQuery
 {
     public string? Search { get; set; }
     public Guid? ProgramId { get; set; }
-    public string? Faculty { get; set; }
+    public List<string> Faculties { get; set; } = new();
     public string? Status { get; set; }
     public bool OnlyUnassigned { get; set; }
     public bool OnlyMine { get; set; }
