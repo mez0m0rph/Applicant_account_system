@@ -18,37 +18,52 @@ public class AdmissionsController : ControllerBase
         _service = service;
     }
 
+    private Guid? GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
+    }
+
+    private string? GetCurrentRole()
+    {
+        return User.FindFirst(ClaimTypes.Role)?.Value
+               ?? User.FindFirst("role")?.Value;
+    }
+
+    [Authorize(Roles = "Applicant")]
     [HttpPost]
     public async Task<IActionResult> Create()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var applicantUserId = GetCurrentUserId();
         var email = User.FindFirst(ClaimTypes.Email)?.Value ?? User.FindFirst("email")?.Value;
 
-        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+        if (!applicantUserId.HasValue)
             return Unauthorized("Некорректный user id");
 
         if (string.IsNullOrWhiteSpace(email))
             return Unauthorized("Email не найден в токене");
 
-        await _service.CreateAsync(applicantUserId, email);
+        await _service.CreateAsync(applicantUserId.Value, email);
         return Ok("Заявление создано");
     }
 
+    [Authorize(Roles = "Applicant")]
     [HttpGet("my")]
     public async Task<IActionResult> GetMy()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var applicantUserId = GetCurrentUserId();
 
-        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+        if (!applicantUserId.HasValue)
             return Unauthorized("Некорректный user id");
 
-        var result = await _service.GetMyAsync(applicantUserId);
+        var result = await _service.GetMyAsync(applicantUserId.Value);
         if (result == null)
             return NotFound();
 
         return Ok(result);
     }
 
+    [Authorize(Roles = "Manager,MainManager,Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAll(
         [FromQuery] string? search,
@@ -56,6 +71,7 @@ public class AdmissionsController : ControllerBase
         [FromQuery] string? faculty,
         [FromQuery] string? status,
         [FromQuery] bool onlyUnassigned = false,
+        [FromQuery] bool onlyMine = false,
         [FromQuery] Guid? assignedManagerUserId = null,
         [FromQuery] string sortBy = "updatedAt",
         [FromQuery] string sortDirection = "desc",
@@ -69,6 +85,7 @@ public class AdmissionsController : ControllerBase
             Faculty = faculty,
             Status = status,
             OnlyUnassigned = onlyUnassigned,
+            OnlyMine = onlyMine,
             AssignedManagerUserId = assignedManagerUserId,
             SortBy = sortBy,
             SortDirection = sortDirection,
@@ -76,7 +93,7 @@ public class AdmissionsController : ControllerBase
             PageSize = pageSize
         };
 
-        return Ok(await _service.GetPagedAsync(query));
+        return Ok(await _service.GetPagedAsync(query, GetCurrentUserId(), GetCurrentRole()));
     }
 
     [AllowAnonymous]
@@ -90,60 +107,66 @@ public class AdmissionsController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Roles = "Applicant")]
     [HttpPost("my/programs")]
     public async Task<IActionResult> AddProgram([FromBody] AddProgramToAdmissionRequest request)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var applicantUserId = GetCurrentUserId();
 
-        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+        if (!applicantUserId.HasValue)
             return Unauthorized("Некорректный user id");
 
-        await _service.AddProgramAsync(applicantUserId, request.ProgramId, request.Priority);
+        await _service.AddProgramAsync(applicantUserId.Value, request.ProgramId, request.Priority);
         return Ok("Программа добавлена в заявление");
     }
 
+    [Authorize(Roles = "Applicant")]
     [HttpPut("my/programs/{programId:guid}/priority")]
     public async Task<IActionResult> UpdatePriority(Guid programId, [FromBody] UpdateAdmissionProgramPriorityRequest request)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var applicantUserId = GetCurrentUserId();
 
-        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+        if (!applicantUserId.HasValue)
             return Unauthorized("Некорректный user id");
 
-        await _service.UpdateProgramPriorityAsync(applicantUserId, programId, request.Priority);
+        await _service.UpdateProgramPriorityAsync(applicantUserId.Value, programId, request.Priority);
         return Ok("Приоритет обновлен");
     }
 
+    [Authorize(Roles = "Applicant")]
     [HttpDelete("my/programs/{programId:guid}")]
     public async Task<IActionResult> RemoveProgram(Guid programId)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var applicantUserId = GetCurrentUserId();
 
-        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+        if (!applicantUserId.HasValue)
             return Unauthorized("Некорректный user id");
 
-        await _service.RemoveProgramAsync(applicantUserId, programId);
+        await _service.RemoveProgramAsync(applicantUserId.Value, programId);
         return Ok("Программа удалена из заявления");
     }
 
+    [Authorize(Roles = "Manager,MainManager,Admin")]
     [HttpPost("{id:guid}/assign-manager")]
     public async Task<IActionResult> AssignManager(Guid id, [FromBody] AssignManagerRequest request)
     {
-        await _service.AssignManagerAsync(id, request.ManagerUserId, request.ManagerEmail);
+        await _service.AssignManagerAsync(id, request.ManagerUserId, request.ManagerEmail, GetCurrentUserId(), GetCurrentRole());
         return Ok("Менеджер назначен");
     }
 
+    [Authorize(Roles = "Manager,MainManager,Admin")]
     [HttpPost("{id:guid}/release-manager")]
     public async Task<IActionResult> ReleaseManager(Guid id)
     {
-        await _service.ReleaseManagerAsync(id);
+        await _service.ReleaseManagerAsync(id, GetCurrentUserId(), GetCurrentRole());
         return Ok("Менеджер снят");
     }
 
+    [Authorize(Roles = "Manager,MainManager,Admin")]
     [HttpPost("{id:guid}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateAdmissionStatusRequest request)
     {
-        await _service.UpdateStatusAsync(id, request.Status);
+        await _service.UpdateStatusAsync(id, request.Status, GetCurrentUserId(), GetCurrentRole());
         return Ok("Статус обновлен");
     }
 }

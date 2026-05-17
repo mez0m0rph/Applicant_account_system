@@ -53,9 +53,15 @@
     </div>
 
     <div class="col-md-1 d-flex align-items-end">
-        <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" name="OnlyUnassigned" value="true" @(Model.Filter.OnlyUnassigned ? "checked" : "") />
-            <label class="form-check-label">Свободные</label>
+        <div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" name="OnlyUnassigned" value="true" @(Model.Filter.OnlyUnassigned ? "checked" : "") />
+                <label class="form-check-label">Свободные</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="OnlyMine" value="true" @(Model.Filter.OnlyMine ? "checked" : "") />
+                <label class="form-check-label">Только мои</label>
+            </div>
         </div>
     </div>
 
@@ -185,6 +191,7 @@ else
                            asp-route-Faculty="@Model.Filter.Faculty"
                            asp-route-Status="@Model.Filter.Status"
                            asp-route-OnlyUnassigned="@Model.Filter.OnlyUnassigned"
+                           asp-route-OnlyMine="@Model.Filter.OnlyMine"
                            asp-route-SortBy="@Model.Filter.SortBy"
                            asp-route-SortDirection="@Model.Filter.SortDirection"
                            asp-route-Page="@i"

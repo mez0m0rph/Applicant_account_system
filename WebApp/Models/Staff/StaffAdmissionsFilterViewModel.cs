@@ -7,6 +7,7 @@ public class StaffAdmissionsFilterViewModel
     public string? Faculty { get; set; }
     public string? Status { get; set; }
     public bool OnlyUnassigned { get; set; }
+    public bool OnlyMine { get; set; }
     public Guid? AssignedManagerUserId { get; set; }
 
     public string SortBy { get; set; } = "updatedAt";

@@ -90,6 +90,28 @@ public class AdmissionServiceImpl : IAdmissionService
         };
     }
 
+    private static bool IsPrivilegedRole(string? role)
+    {
+        return string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(role, "MainManager", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsManagerRole(string? role)
+    {
+        return string.Equals(role, "Manager", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void EnsureCanManageAdmission(Admission admission, Guid? currentUserId, string? currentRole)
+    {
+        if (IsPrivilegedRole(currentRole))
+            return;
+
+        if (IsManagerRole(currentRole) && currentUserId.HasValue && admission.AssignedManagerUserId == currentUserId.Value)
+            return;
+
+        throw new Exception("Недостаточно прав для изменения этого заявления");
+    }
+
     private async Task EnsureProgramAllowedByEducationDocumentAsync(Guid applicantUserId, string newProgramEducationLevel)
     {
         var documents = await _documentCatalogClient.GetByApplicantUserIdAsync(applicantUserId);
@@ -143,10 +165,16 @@ public class AdmissionServiceImpl : IAdmissionService
         return result;
     }
 
-    public async Task<PagedAdmissionsResponse> GetPagedAsync(GetAdmissionsQuery query)
+    public async Task<PagedAdmissionsResponse> GetPagedAsync(GetAdmissionsQuery query, Guid? currentUserId, string? currentRole)
     {
         var page = query.Page < 1 ? 1 : query.Page;
         var pageSize = query.PageSize < 1 ? 10 : query.PageSize;
+
+        if (query.OnlyMine && currentUserId.HasValue)
+            query.AssignedManagerUserId = currentUserId.Value;
+
+        if (IsManagerRole(currentRole) && !IsPrivilegedRole(currentRole) && currentUserId.HasValue)
+            query.AssignedManagerUserId = currentUserId.Value;
 
         var (items, totalCount) = await _repository.GetPagedAsync(query);
 
@@ -253,11 +281,13 @@ public class AdmissionServiceImpl : IAdmissionService
         await _repository.UpdateAdmissionAsync(admission);
     }
 
-    public async Task AssignManagerAsync(Guid admissionId, Guid managerUserId, string managerEmail)
+    public async Task AssignManagerAsync(Guid admissionId, Guid managerUserId, string managerEmail, Guid? currentUserId, string? currentRole)
     {
         var admission = await _repository.GetByIdAsync(admissionId);
         if (admission == null)
             throw new Exception("Заявление не найдено");
+
+        EnsureCanManageAdmission(admission, currentUserId, currentRole);
 
         admission.AssignedManagerUserId = managerUserId;
         admission.Status = AdmissionStatus.OnReview;
@@ -282,11 +312,13 @@ public class AdmissionServiceImpl : IAdmissionService
         });
     }
 
-    public async Task ReleaseManagerAsync(Guid admissionId)
+    public async Task ReleaseManagerAsync(Guid admissionId, Guid? currentUserId, string? currentRole)
     {
         var admission = await _repository.GetByIdAsync(admissionId);
         if (admission == null)
             throw new Exception("Заявление не найдено");
+
+        EnsureCanManageAdmission(admission, currentUserId, currentRole);
 
         admission.AssignedManagerUserId = null;
         admission.UpdatedAt = DateTime.UtcNow;
@@ -294,11 +326,13 @@ public class AdmissionServiceImpl : IAdmissionService
         await _repository.UpdateAdmissionAsync(admission);
     }
 
-    public async Task UpdateStatusAsync(Guid admissionId, string status)
+    public async Task UpdateStatusAsync(Guid admissionId, string status, Guid? currentUserId, string? currentRole)
     {
         var admission = await _repository.GetByIdAsync(admissionId);
         if (admission == null)
             throw new Exception("Заявление не найдено");
+
+        EnsureCanManageAdmission(admission, currentUserId, currentRole);
 
         if (!Enum.TryParse<AdmissionStatus>(status, true, out var parsedStatus))
             throw new Exception("Некорректный статус");

@@ -150,6 +150,9 @@ public class StaffApiService : IStaffApiService
         if (filter.OnlyUnassigned)
             query.Add("onlyUnassigned=true");
 
+        if (filter.OnlyMine)
+            query.Add("onlyMine=true");
+
         if (filter.AssignedManagerUserId.HasValue)
             query.Add($"assignedManagerUserId={filter.AssignedManagerUserId.Value}");
 
