@@ -1,4 +1,5 @@
 @model List<WebApp.Models.Document.DocumentViewModel>
+
 @{
     ViewData["Title"] = "Мои документы";
 }
@@ -10,30 +11,62 @@
     <div class="alert alert-info">@TempData["Message"]</div>
 }
 
-<div class="mb-3">
+<p>
     <a asp-action="Upload" class="btn btn-primary">Загрузить документ</a>
-</div>
+</p>
 
 @if (!Model.Any())
 {
-    <div class="alert alert-warning">Документы пока не загружены.</div>
+    <p>Документы пока не загружены.</p>
 }
 else
 {
-    @foreach (var doc in Model)
-    {
-        <div class="card mb-3">
-            <div class="card-body">
-                <p><strong>Тип:</strong> @doc.Type</p>
-                <p><strong>Файл:</strong> @doc.File.FileName</p>
-                <p><strong>ContentType:</strong> @doc.File.ContentType</p>
-                <p><strong>SeriesNumber:</strong> @doc.SeriesNumber</p>
-                <p><strong>IssuedBy:</strong> @doc.IssuedBy</p>
-                <p><strong>BirthPlace:</strong> @doc.BirthPlace</p>
-                <p><strong>IssueDate:</strong> @(doc.IssueDate?.ToLocalTime().ToString("yyyy-MM-dd") ?? "-")</p>
-                <p><strong>EducationDocumentName:</strong> @doc.EducationDocumentName</p>
-                <p><strong>StoragePath:</strong> @doc.File.StoragePath</p>
+    <div class="row g-3">
+        @foreach (var doc in Model)
+        {
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@doc.Type</h5>
+
+                        <p class="mb-1"><strong>Файл:</strong> @doc.File.FileName</p>
+                        <p class="mb-1"><strong>ContentType:</strong> @doc.File.ContentType</p>
+                        <p class="mb-1"><strong>Серия / номер:</strong> @(doc.SeriesNumber ?? "-")</p>
+                        <p class="mb-1"><strong>Кем выдан:</strong> @(doc.IssuedBy ?? "-")</p>
+                        <p class="mb-1"><strong>Место рождения:</strong> @(doc.BirthPlace ?? "-")</p>
+                        <p class="mb-1"><strong>Дата выдачи:</strong> @(doc.IssueDate?.ToLocalTime().ToString("yyyy-MM-dd") ?? "-")</p>
+                        <p class="mb-1"><strong>Документ об образовании:</strong> @(doc.EducationDocumentName ?? "-")</p>
+                        <p class="mb-1"><strong>Уровень образования:</strong> @(doc.EducationLevel ?? "-")</p>
+
+                        <div class="mt-3 d-flex gap-2 flex-wrap">
+                            <a asp-action="Download"
+                               asp-route-documentId="@doc.Id"
+                               class="btn btn-outline-primary btn-sm">
+                                Скачать скан
+                            </a>
+
+                            <a asp-action="Edit"
+                               asp-route-documentId="@doc.Id"
+                               class="btn btn-outline-secondary btn-sm">
+                                Редактировать
+                            </a>
+
+                            <a asp-action="ReplaceFile"
+                               asp-route-documentId="@doc.Id"
+                               class="btn btn-outline-dark btn-sm">
+                                Заменить скан
+                            </a>
+
+                            <form asp-action="Delete" method="post">
+                                <input type="hidden" name="documentId" value="@doc.Id" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    Удалить
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    }
+        }
+    </div>
 }

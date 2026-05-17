@@ -138,4 +138,104 @@ public class DocumentServiceImpl : IDocumentService
 
         return result;
     }
+
+    public async Task<DownloadedFileDto> DownloadAsync(Guid applicantUserId, Guid documentId)
+    {
+        var document = await _repository.GetByIdAsync(documentId);
+        if (document == null || document.ApplicantUserId != applicantUserId)
+            throw new Exception("Документ не найден");
+
+        var file = await _repository.GetStoredFileByIdAsync(document.StoredFileId);
+        if (file == null)
+            throw new Exception("Файл документа не найден");
+
+        var content = await _fileStorageService.DownloadAsync(file.StoragePath);
+
+        return new DownloadedFileDto
+        {
+            Content = content,
+            FileName = file.FileName,
+            ContentType = string.IsNullOrWhiteSpace(file.ContentType)
+                ? "application/octet-stream"
+                : file.ContentType
+        };
+    }
+
+    public async Task DeleteAsync(Guid applicantUserId, Guid documentId)
+    {
+        await EnsureDocumentsEditableAsync(applicantUserId);
+
+        var document = await _repository.GetByIdAsync(documentId);
+        if (document == null || document.ApplicantUserId != applicantUserId)
+            throw new Exception("Документ не найден");
+
+        var file = await _repository.GetStoredFileByIdAsync(document.StoredFileId);
+        if (file == null)
+            throw new Exception("Файл документа не найден");
+
+        await _fileStorageService.DeleteAsync(file.StoragePath);
+        await _repository.DeleteDocumentAsync(document);
+        await _repository.DeleteStoredFileAsync(file);
+    }
+
+    public async Task UpdateAsync(Guid applicantUserId, Guid documentId, UpdateDocumentRequest request)
+    {
+        await EnsureDocumentsEditableAsync(applicantUserId);
+
+        var document = await _repository.GetByIdAsync(documentId);
+        if (document == null || document.ApplicantUserId != applicantUserId)
+            throw new Exception("Документ не найден");
+
+        document.Type = request.Type;
+        document.SeriesNumber = request.SeriesNumber ?? string.Empty;
+        document.IssuedBy = request.IssuedBy ?? string.Empty;
+        document.BirthPlace = request.BirthPlace ?? string.Empty;
+        document.IssueDate = request.IssueDate.HasValue
+            ? NormalizeUtc(request.IssueDate.Value)
+            : null;
+        document.EducationDocumentName = request.EducationDocumentName ?? string.Empty;
+        document.EducationLevel = request.EducationLevel ?? string.Empty;
+
+        await _repository.UpdateDocumentAsync(document);
+    }
+
+    public async Task ReplaceFileAsync(Guid applicantUserId, Guid documentId, ReplaceDocumentFileRequest request)
+    {
+        await EnsureDocumentsEditableAsync(applicantUserId);
+
+        if (string.IsNullOrWhiteSpace(request.FileContentBase64))
+            throw new Exception("Файл не передан");
+
+        var document = await _repository.GetByIdAsync(documentId);
+        if (document == null || document.ApplicantUserId != applicantUserId)
+            throw new Exception("Документ не найден");
+
+        var oldFile = await _repository.GetStoredFileByIdAsync(document.StoredFileId);
+        if (oldFile == null)
+            throw new Exception("Файл документа не найден");
+
+        var fileBytes = Convert.FromBase64String(request.FileContentBase64);
+
+        var newStoragePath = await _fileStorageService.UploadAsync(
+            request.FileName,
+            request.ContentType,
+            fileBytes);
+
+        var newFile = new StoredFile
+        {
+            Id = Guid.NewGuid(),
+            FileName = request.FileName,
+            ContentType = request.ContentType,
+            StoragePath = newStoragePath,
+            UploadedAt = DateTime.UtcNow
+        };
+
+        await _repository.AddStoredFileAsync(newFile);
+
+        document.StoredFileId = newFile.Id;
+        await _repository.UpdateDocumentAsync(document);
+
+        await _fileStorageService.DeleteAsync(oldFile.StoragePath);
+        await _repository.DeleteStoredFileAsync(oldFile);
+    }
 }

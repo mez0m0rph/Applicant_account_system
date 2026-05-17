@@ -1,5 +1,5 @@
-using DocumentService.Domain.Entities;
 using DocumentService.Application.Interfaces;
+using DocumentService.Domain.Entities;
 using DocumentService.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +8,7 @@ namespace DocumentService.Infrastructure.Repositories;
 public class DocumentRepository : IDocumentRepository
 {
     private readonly AppDbContext _context;
+
     public DocumentRepository(AppDbContext context)
     {
         _context = context;
@@ -15,20 +16,20 @@ public class DocumentRepository : IDocumentRepository
 
     public async Task<Document?> GetByIdAsync(Guid id)
     {
-        return await _context.Documents.FirstOrDefaultAsync(d => d.Id == id);
+        return await _context.Documents.FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<List<Document>> GetByApplicantUserIdAsync(Guid applicantUserId)
     {
         return await _context.Documents
-            .Where(d => d.ApplicantUserId == applicantUserId)
+            .Where(x => x.ApplicantUserId == applicantUserId)
+            .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
     }
 
-    public async Task AddDocumentAsync(Document document)
+    public async Task<StoredFile?> GetStoredFileByIdAsync(Guid id)
     {
-        await _context.Documents.AddAsync(document);
-        await _context.SaveChangesAsync();   
+        return await _context.StoredFiles.FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task AddStoredFileAsync(StoredFile file)
@@ -37,8 +38,27 @@ public class DocumentRepository : IDocumentRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<StoredFile?> GetStoredFileByIdAsync(Guid id)
+    public async Task AddDocumentAsync(Document document)
     {
-        return await _context.StoredFiles.FirstOrDefaultAsync(f => f.Id == id);
+        await _context.Documents.AddAsync(document);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateDocumentAsync(Document document)
+    {
+        _context.Documents.Update(document);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteDocumentAsync(Document document)
+    {
+        _context.Documents.Remove(document);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteStoredFileAsync(StoredFile file)
+    {
+        _context.StoredFiles.Remove(file);
+        await _context.SaveChangesAsync();
     }
 }

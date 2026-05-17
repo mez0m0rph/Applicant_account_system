@@ -1,0 +1,62 @@
+@model WebApp.Models.Document.UpdateDocumentViewModel
+
+@{
+    ViewData["Title"] = "Редактировать документ";
+}
+
+<h2>Редактировать документ</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
+<form asp-action="Edit" method="post">
+    <input asp-for="Id" type="hidden" />
+
+    <div class="mb-3">
+        <label class="form-label">Тип документа</label>
+        <select asp-for="Type" class="form-control">
+            <option value="0">Passport</option>
+            <option value="1">EducationDocument</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Серия / номер</label>
+        <input asp-for="SeriesNumber" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Кем выдан</label>
+        <input asp-for="IssuedBy" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Место рождения</label>
+        <input asp-for="BirthPlace" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Дата выдачи</label>
+        <input asp-for="IssueDate" type="date" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Название документа об образовании</label>
+        <input asp-for="EducationDocumentName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Уровень образования</label>
+        <select asp-for="EducationLevel" class="form-control">
+            <option value="">Не указано</option>
+            <option value="Бакалавриат">Бакалавриат</option>
+            <option value="Специалитет">Специалитет</option>
+            <option value="Магистратура">Магистратура</option>
+            <option value="Аспирантура">Аспирантура</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</form>

@@ -1,0 +1,23 @@
+@model WebApp.Models.Document.ReplaceDocumentFileViewModel
+
+@{
+    ViewData["Title"] = "Заменить скан документа";
+}
+
+<h2>Заменить скан документа</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
+<form asp-action="ReplaceFile" method="post" enctype="multipart/form-data">
+    <input asp-for="Id" type="hidden" />
+
+    <div class="mb-3">
+        <label class="form-label">Новый файл</label>
+        <input asp-for="UploadedFile" type="file" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Заменить файл</button>
+</form>

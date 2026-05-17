@@ -46,6 +46,54 @@ public class DocumentsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("my/{documentId:guid}/download")]
+    public async Task<IActionResult> Download(Guid documentId)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+            return Unauthorized("Некорректный user id");
+
+        var result = await _service.DownloadAsync(applicantUserId, documentId);
+        return File(result.Content, result.ContentType, result.FileName);
+    }
+
+    [HttpPut("my/{documentId:guid}")]
+    public async Task<IActionResult> Update(Guid documentId, [FromBody] UpdateDocumentRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+            return Unauthorized("Некорректный user id");
+
+        await _service.UpdateAsync(applicantUserId, documentId, request);
+        return Ok("Документ обновлен");
+    }
+
+    [HttpPut("my/{documentId:guid}/file")]
+    public async Task<IActionResult> ReplaceFile(Guid documentId, [FromBody] ReplaceDocumentFileRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+            return Unauthorized("Некорректный user id");
+
+        await _service.ReplaceFileAsync(applicantUserId, documentId, request);
+        return Ok("Скан документа заменен");
+    }
+
+    [HttpDelete("my/{documentId:guid}")]
+    public async Task<IActionResult> Delete(Guid documentId)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(userIdClaim, out var applicantUserId))
+            return Unauthorized("Некорректный user id");
+
+        await _service.DeleteAsync(applicantUserId, documentId);
+        return Ok("Документ удален");
+    }
+
     [AllowAnonymous]
     [HttpGet("applicant/{applicantUserId:guid}")]
     public async Task<IActionResult> GetByApplicantUserId(Guid applicantUserId)
