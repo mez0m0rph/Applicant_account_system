@@ -4,5 +4,5 @@ namespace ApplicantService.Application.Interfaces;
 
 public interface IAdmissionCatalogClient
 {
-    Task<AdmissionDetailsDto?> GetMyAsync(Guid applicantUserId);
+    Task<AdmissionAccessDto?> GetByApplicantUserIdAsync(Guid applicantUserId);
 }

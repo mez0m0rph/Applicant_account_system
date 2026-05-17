@@ -33,6 +33,15 @@ public class StaffController : Controller
 
     private string? CurrentRole => HttpContext.Session.GetString("UserRole");
 
+    private Guid? CurrentUserId
+    {
+        get
+        {
+            var raw = HttpContext.Session.GetString("UserId");
+            return Guid.TryParse(raw, out var id) ? id : null;
+        }
+    }
+
     private bool IsStaff()
     {
         return CurrentRole is "Manager" or "MainManager" or "Admin";
@@ -57,6 +66,22 @@ public class StaffController : Controller
     {
         TempData["Message"] = "У вас нет доступа к этому разделу";
         return RedirectToAction("Index", "Home");
+    }
+
+    private async Task<bool> CanEditApplicantAsync(Guid applicantUserId)
+    {
+        if (CurrentRole is "MainManager" or "Admin")
+            return true;
+
+        if (CurrentRole == "Manager" && CurrentUserId.HasValue)
+        {
+            var admissionResult = await _admissionApiService.GetByApplicantUserIdAsync(applicantUserId);
+            return admissionResult.Success
+                && admissionResult.Data != null
+                && admissionResult.Data.AssignedManagerUserId == CurrentUserId.Value;
+        }
+
+        return false;
     }
 
     [HttpGet]
@@ -203,6 +228,8 @@ public class StaffController : Controller
             AvailablePrograms = programsResult.Success ? (programsResult.Data?.Items ?? new List<ProgramViewModel>()) : new()
         };
 
+        ViewBag.CanEdit = await CanEditApplicantAsync(applicantUserId);
+
         if (!profileResult.Success && TempData["Message"] == null)
             TempData["Message"] = profileResult.Error;
 
@@ -224,6 +251,9 @@ public class StaffController : Controller
         if (!IsStaff())
             return ForbiddenRedirect();
 
+        if (!await CanEditApplicantAsync(applicantUserId))
+            return ForbiddenRedirect();
+
         var result = await _applicantApiService.GetByUserIdAsync(applicantUserId);
 
         if (!result.Success || result.Data == null)
@@ -241,6 +271,9 @@ public class StaffController : Controller
         if (!IsStaff())
             return ForbiddenRedirect();
 
+        if (!await CanEditApplicantAsync(model.UserId))
+            return ForbiddenRedirect();
+
         var result = await _applicantApiService.UpdateByUserIdAsync(model.UserId, model);
         TempData["Message"] = result.Success ? "Профиль абитуриента обновлен" : result.Error;
 
@@ -251,6 +284,9 @@ public class StaffController : Controller
     public async Task<IActionResult> EditDocument(Guid applicantUserId, Guid documentId)
     {
         if (!IsStaff())
+            return ForbiddenRedirect();
+
+        if (!await CanEditApplicantAsync(applicantUserId))
             return ForbiddenRedirect();
 
         var result = await _documentApiService.GetByApplicantUserIdAsync(applicantUserId);
@@ -283,6 +319,9 @@ public class StaffController : Controller
         if (!IsStaff())
             return ForbiddenRedirect();
 
+        if (!await CanEditApplicantAsync(applicantUserId))
+            return ForbiddenRedirect();
+
         var apiModel = new UpdateDocumentApiModel
         {
             Type = model.Type,
@@ -301,9 +340,12 @@ public class StaffController : Controller
     }
 
     [HttpGet]
-    public IActionResult UploadDocument(Guid applicantUserId)
+    public async Task<IActionResult> UploadDocument(Guid applicantUserId)
     {
         if (!IsStaff())
+            return ForbiddenRedirect();
+
+        if (!await CanEditApplicantAsync(applicantUserId))
             return ForbiddenRedirect();
 
         ViewBag.ApplicantUserId = applicantUserId;
@@ -314,6 +356,9 @@ public class StaffController : Controller
     public async Task<IActionResult> UploadDocument(Guid applicantUserId, UploadDocumentViewModel model)
     {
         if (!IsStaff())
+            return ForbiddenRedirect();
+
+        if (!await CanEditApplicantAsync(applicantUserId))
             return ForbiddenRedirect();
 
         if (model.UploadedFile == null || model.UploadedFile.Length == 0)
@@ -351,6 +396,9 @@ public class StaffController : Controller
         if (!IsStaff())
             return ForbiddenRedirect();
 
+        if (!await CanEditApplicantAsync(applicantUserId))
+            return ForbiddenRedirect();
+
         var result = await _documentApiService.DeleteForApplicantAsync(applicantUserId, documentId);
         TempData["Message"] = result.Success ? "Документ удален" : result.Error;
 
@@ -358,9 +406,12 @@ public class StaffController : Controller
     }
 
     [HttpGet]
-    public IActionResult ReplaceDocumentFile(Guid applicantUserId, Guid documentId)
+    public async Task<IActionResult> ReplaceDocumentFile(Guid applicantUserId, Guid documentId)
     {
         if (!IsStaff())
+            return ForbiddenRedirect();
+
+        if (!await CanEditApplicantAsync(applicantUserId))
             return ForbiddenRedirect();
 
         ViewBag.ApplicantUserId = applicantUserId;
@@ -374,6 +425,9 @@ public class StaffController : Controller
     public async Task<IActionResult> ReplaceDocumentFile(Guid applicantUserId, ReplaceDocumentFileViewModel model)
     {
         if (!IsStaff())
+            return ForbiddenRedirect();
+
+        if (!await CanEditApplicantAsync(applicantUserId))
             return ForbiddenRedirect();
 
         if (model.UploadedFile == null || model.UploadedFile.Length == 0)
@@ -404,6 +458,9 @@ public class StaffController : Controller
         if (!IsStaff())
             return ForbiddenRedirect();
 
+        if (!await CanEditApplicantAsync(applicantUserId))
+            return ForbiddenRedirect();
+
         var result = await _admissionApiService.AddProgramForStaffAsync(admissionId, programId, priority);
         TempData["Message"] = result.Success ? "Программа добавлена" : result.Error;
 
@@ -416,6 +473,9 @@ public class StaffController : Controller
         if (!IsStaff())
             return ForbiddenRedirect();
 
+        if (!await CanEditApplicantAsync(applicantUserId))
+            return ForbiddenRedirect();
+
         var result = await _admissionApiService.UpdateProgramPriorityForStaffAsync(admissionId, programId, priority);
         TempData["Message"] = result.Success ? "Приоритет обновлен" : result.Error;
 
@@ -426,6 +486,9 @@ public class StaffController : Controller
     public async Task<IActionResult> RemoveProgramFromAdmission(Guid applicantUserId, Guid admissionId, Guid programId)
     {
         if (!IsStaff())
+            return ForbiddenRedirect();
+
+        if (!await CanEditApplicantAsync(applicantUserId))
             return ForbiddenRedirect();
 
         var result = await _admissionApiService.RemoveProgramForStaffAsync(admissionId, programId);

@@ -9,4 +9,5 @@ public interface IUserRepository
     Task<User?> GetByRefreshTokenAsync(string refreshToken);
     Task CreateAsync(User user);
     Task UpdateAsync(User user);
+    Task DeleteAsync(User user);
 }

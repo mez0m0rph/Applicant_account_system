@@ -16,14 +16,18 @@ public class AdmissionCatalogClient : IAdmissionCatalogClient
         _configuration = configuration;
     }
 
-    public async Task<AdmissionDetailsDto?> GetMyAsync(Guid applicantUserId)
+    public async Task<AdmissionAccessDto?> GetByApplicantUserIdAsync(Guid applicantUserId)
     {
         var baseUrl = _configuration["ApiUrls:Admission"];
-        var response = await _httpClient.GetAsync($"{baseUrl}/admissions/applicant/{applicantUserId}");
+
+        if (string.IsNullOrWhiteSpace(baseUrl))
+            return null;
+
+        var response = await _httpClient.GetAsync($"{baseUrl.TrimEnd('/')}/admissions/applicant/{applicantUserId}");
 
         if (!response.IsSuccessStatusCode)
             return null;
 
-        return await response.Content.ReadFromJsonAsync<AdmissionDetailsDto>();
+        return await response.Content.ReadFromJsonAsync<AdmissionAccessDto>();
     }
 }

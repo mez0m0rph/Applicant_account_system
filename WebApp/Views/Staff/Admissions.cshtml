@@ -185,18 +185,27 @@ else
                 @if (isPrivileged)
                 {
                     <td>
-                        @if (!a.AssignedManagerUserId.HasValue && Model.Managers.Any())
+                        @if (!a.AssignedManagerUserId.HasValue)
                         {
-                            <form asp-action="AssignManager" method="post">
-                                <input type="hidden" name="admissionId" value="@a.Id" />
-                                <select name="managerUserId" class="form-control mb-2">
-                                    @foreach (var m in Model.Managers.Where(x => x.Role == "Manager"))
-                                    {
-                                        <option value="@m.UserId">@m.FullName (@m.Email)</option>
-                                    }
-                                </select>
-                                <button type="submit" class="btn btn-primary btn-sm">Назначить</button>
-                            </form>
+                            var availableManagers = Model.Managers.Where(x => x.Role == "Manager").ToList();
+
+                            if (availableManagers.Any())
+                            {
+                                <form asp-action="AssignManager" method="post">
+                                    <input type="hidden" name="admissionId" value="@a.Id" />
+                                    <select name="managerUserId" class="form-control mb-2">
+                                        @foreach (var m in availableManagers)
+                                        {
+                                            <option value="@m.UserId">@m.FullName (@m.Email)</option>
+                                        }
+                                    </select>
+                                    <button type="submit" class="btn btn-primary btn-sm">Назначить</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Нет менеджеров с ролью Manager</span>
+                            }
                         }
                         else
                         {
@@ -204,10 +213,17 @@ else
                         }
                     </td>
                     <td>
-                        <form asp-action="ReleaseManager" method="post">
-                            <input type="hidden" name="admissionId" value="@a.Id" />
-                            <button type="submit" class="btn btn-warning btn-sm">Снять</button>
-                        </form>
+                        @if (a.AssignedManagerUserId.HasValue)
+                        {
+                            <form asp-action="ReleaseManager" method="post">
+                                <input type="hidden" name="admissionId" value="@a.Id" />
+                                <button type="submit" class="btn btn-warning btn-sm">Снять</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
                     </td>
                 }
 

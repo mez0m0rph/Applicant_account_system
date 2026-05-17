@@ -10,40 +10,38 @@ namespace AuthService.API.Controllers;
 [Route("auth")]
 public class AuthController : ControllerBase
 {
-    private readonly IAuthService _authService;
+    private readonly IAuthService _service;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService service)
     {
-        _authService = authService;
+        _service = service;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        await _authService.RegisterAsync(request);
-        return Ok("Пользователь зарегистрирован");
-    }
-
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
-    {
-        var result = await _authService.LoginAsync(request);
-        return Ok(result);
-    }
-
-    [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
-    {
-        var result = await _authService.RefreshTokenAsync(request);
-        return Ok(result);
+        await _service.RegisterAsync(request);
+        return Ok("Регистрация успешна");
     }
 
     [Authorize(Roles = "Admin")]
     [HttpPost("staff")]
     public async Task<IActionResult> CreateStaff([FromBody] CreateStaffRequest request)
     {
-        var userId = await _authService.CreateStaffAsync(request);
-        return Ok(new { userId });
+        var id = await _service.CreateStaffAsync(request);
+        return Ok(new { id });
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    {
+        return Ok(await _service.LoginAsync(request));
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
+    {
+        return Ok(await _service.RefreshTokenAsync(request));
     }
 
     [Authorize]
@@ -55,7 +53,15 @@ public class AuthController : ControllerBase
         if (!Guid.TryParse(userIdClaim, out var userId))
             return Unauthorized("Некорректный user id");
 
-        await _authService.ChangePasswordAsync(userId, request);
+        await _service.ChangePasswordAsync(userId, request);
         return Ok("Пароль успешно изменен");
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("users/{userId:guid}")]
+    public async Task<IActionResult> DeleteUser(Guid userId)
+    {
+        await _service.DeleteUserAsync(userId);
+        return Ok("Пользователь удален");
     }
 }

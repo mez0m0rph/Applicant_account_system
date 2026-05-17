@@ -21,10 +21,10 @@ public class AdmissionsController : Controller
         if (!result.Success)
         {
             TempData["Message"] = result.Error;
-            return View(new AdmissionViewModel());
+            return View(null);
         }
 
-        return View(result.Data ?? new AdmissionViewModel());
+        return View(result.Data);
     }
 
     [HttpGet]
@@ -41,7 +41,7 @@ public class AdmissionsController : Controller
         if (!result.Success)
         {
             TempData["Message"] = result.Error;
-            return View(model);
+            return RedirectToAction("My");
         }
 
         TempData["Message"] = "Заявление создано";

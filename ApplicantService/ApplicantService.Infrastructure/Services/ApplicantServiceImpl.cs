@@ -30,7 +30,7 @@ public class ApplicantServiceImpl : IApplicantService
 
     private async Task EnsureApplicantEditableAsync(Guid userId)
     {
-        var admission = await _admissionCatalogClient.GetMyAsync(userId);
+        var admission = await _admissionCatalogClient.GetByApplicantUserIdAsync(userId);
 
         if (admission != null &&
             string.Equals(admission.Status, "Closed", StringComparison.OrdinalIgnoreCase))

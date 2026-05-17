@@ -38,12 +38,13 @@ public class StaffApiService : IStaffApiService
         if (!createStaffResponse.IsSuccessStatusCode)
             return ApiResult<string>.Fail(ReadMessage(createStaffContent, "Ошибка создания пользователя"));
 
-        using var staffJson = JsonDocument.Parse(createStaffContent);
-        var userId = staffJson.RootElement.GetProperty("id").GetGuid();
+        var userId = ExtractGuidFromContent(createStaffContent);
+        if (userId == Guid.Empty)
+            return ApiResult<string>.Fail($"Не удалось получить id созданного пользователя. Ответ AuthService: {createStaffContent}");
 
         var createManagerResponse = await _httpClient.PostAsJsonAsync($"{managerBaseUrl}/managers", new
         {
-            userId,
+            userId = userId,
             fullName = model.FullName,
             email = model.Email,
             role = model.Role,
@@ -113,13 +114,26 @@ public class StaffApiService : IStaffApiService
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
-        var baseUrl = _configuration["ApiUrls:Manager"];
-        var response = await _httpClient.DeleteAsync($"{baseUrl}/managers/{id}");
-        var content = await response.Content.ReadAsStringAsync();
+        var managerResult = await GetManagerByIdAsync(id);
+        if (!managerResult.Success || managerResult.Data == null)
+            return ApiResult<string>.Fail(managerResult.Error ?? "Менеджер не найден");
 
-        return response.IsSuccessStatusCode
-            ? ApiResult<string>.Ok(ReadMessage(content, "Менеджер удален"))
-            : ApiResult<string>.Fail(ReadMessage(content, "Ошибка удаления менеджера"));
+        var managerBaseUrl = _configuration["ApiUrls:Manager"];
+        var authBaseUrl = _configuration["ApiUrls:Auth"];
+
+        var deleteManagerResponse = await _httpClient.DeleteAsync($"{managerBaseUrl}/managers/{id}");
+        var deleteManagerContent = await deleteManagerResponse.Content.ReadAsStringAsync();
+
+        if (!deleteManagerResponse.IsSuccessStatusCode)
+            return ApiResult<string>.Fail(ReadMessage(deleteManagerContent, "Ошибка удаления менеджера"));
+
+        var deleteUserResponse = await _httpClient.DeleteAsync($"{authBaseUrl}/auth/users/{managerResult.Data.UserId}");
+        var deleteUserContent = await deleteUserResponse.Content.ReadAsStringAsync();
+
+        if (!deleteUserResponse.IsSuccessStatusCode)
+            return ApiResult<string>.Fail(ReadMessage(deleteUserContent, "Менеджер удален, но не удалось удалить auth-пользователя"));
+
+        return ApiResult<string>.Ok("Менеджер удален");
     }
 
     public async Task<ApiResult<PagedAdmissionsViewModel>> GetAdmissionsAsync(StaffAdmissionsFilterViewModel filter)
@@ -213,10 +227,7 @@ public class StaffApiService : IStaffApiService
             managerEmail = manager.Email
         };
 
-        var response = await _httpClient.PostAsJsonAsync(
-            $"{baseUrl}/admissions/{model.AdmissionId}/assign-manager",
-            payload);
-
+        var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/admissions/{model.AdmissionId}/assign-manager", payload);
         var content = await response.Content.ReadAsStringAsync();
 
         return response.IsSuccessStatusCode
@@ -244,15 +255,56 @@ public class StaffApiService : IStaffApiService
         var baseUrl = _configuration["ApiUrls:Admission"];
         var payload = new { status = model.Status };
 
-        var response = await _httpClient.PostAsJsonAsync(
-            $"{baseUrl}/admissions/{model.AdmissionId}/status",
-            payload);
-
+        var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/admissions/{model.AdmissionId}/status", payload);
         var content = await response.Content.ReadAsStringAsync();
 
         return response.IsSuccessStatusCode
             ? ApiResult<string>.Ok(ReadMessage(content, "Статус обновлен"))
             : ApiResult<string>.Fail(ReadMessage(content, "Ошибка обновления статуса"));
+    }
+
+    private static Guid ExtractGuidFromContent(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return Guid.Empty;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(content);
+            var root = doc.RootElement;
+
+            if (root.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var key in new[] { "id", "Id", "userId", "UserId" })
+                {
+                    if (root.TryGetProperty(key, out var prop))
+                    {
+                        if (prop.ValueKind == JsonValueKind.String && Guid.TryParse(prop.GetString(), out var parsedString))
+                            return parsedString;
+
+                        try
+                        {
+                            return prop.GetGuid();
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+            }
+        }
+        catch
+        {
+        }
+
+        var tokens = content.Split(new[] { ' ', '\n', '\r', '\t', '"', '\'', '{', '}', ':', ',', '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var token in tokens)
+        {
+            if (Guid.TryParse(token, out var parsed))
+                return parsed;
+        }
+
+        return Guid.Empty;
     }
 
     private static string ReadMessage(string? content, string fallback)

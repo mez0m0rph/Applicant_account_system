@@ -133,4 +133,13 @@ public class AuthServiceImpl : IAuthService
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
         await _userRepository.UpdateAsync(user);
     }
+
+    public async Task DeleteUserAsync(Guid userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+            throw new Exception("Пользователь не найден");
+
+        await _userRepository.DeleteAsync(user);
+    }
 }

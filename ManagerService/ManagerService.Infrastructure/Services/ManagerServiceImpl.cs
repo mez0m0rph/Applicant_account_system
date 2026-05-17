@@ -25,6 +25,12 @@ public class ManagerServiceImpl : IManagerService
         return manager == null ? null : Map(manager);
     }
 
+    public async Task<ManagerResponse?> GetByUserIdAsync(Guid userId)
+    {
+        var manager = await _repository.GetByUserIdAsync(userId);
+        return manager == null ? null : Map(manager);
+    }
+
     public async Task<Guid> CreateAsync(CreateManagerRequest request)
     {
         var existing = await _repository.GetByUserIdAsync(request.UserId);

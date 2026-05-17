@@ -23,12 +23,11 @@ public class ManagerCatalogClient : IManagerCatalogClient
         if (string.IsNullOrWhiteSpace(baseUrl))
             return null;
 
-        var response = await _httpClient.GetAsync($"{baseUrl.TrimEnd('/')}/managers");
+        var response = await _httpClient.GetAsync($"{baseUrl.TrimEnd('/')}/managers/by-user/{userId}");
 
         if (!response.IsSuccessStatusCode)
             return null;
 
-        var managers = await response.Content.ReadFromJsonAsync<List<ManagerCatalogItemDto>>();
-        return managers?.FirstOrDefault(x => x.UserId == userId);
+        return await response.Content.ReadFromJsonAsync<ManagerCatalogItemDto>();
     }
 }

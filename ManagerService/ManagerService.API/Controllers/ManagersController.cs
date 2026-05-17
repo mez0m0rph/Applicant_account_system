@@ -17,14 +17,14 @@ public class ManagersController : ControllerBase
         _service = service;
     }
 
-    [Authorize(Roles = "Manager,MainManager,Admin")]
+    [Authorize(Roles = "MainManager,Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
         return Ok(await _service.GetAllAsync());
     }
 
-    [Authorize(Roles = "Manager,MainManager,Admin")]
+    [Authorize(Roles = "MainManager,Admin")]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -35,7 +35,18 @@ public class ManagersController : ControllerBase
         return Ok(result);
     }
 
-    [Authorize(Roles = "MainManager,Admin")]
+    [AllowAnonymous]
+    [HttpGet("by-user/{userId:guid}")]
+    public async Task<IActionResult> GetByUserId(Guid userId)
+    {
+        var result = await _service.GetByUserIdAsync(userId);
+        if (result == null)
+            return NotFound();
+
+        return Ok(result);
+    }
+
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateManagerRequest request)
     {
@@ -43,7 +54,7 @@ public class ManagersController : ControllerBase
         return Ok(new { id });
     }
 
-    [Authorize(Roles = "MainManager,Admin")]
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateManagerRequest request)
     {
@@ -51,7 +62,7 @@ public class ManagersController : ControllerBase
         return Ok("Менеджер обновлен");
     }
 
-    [Authorize(Roles = "MainManager,Admin")]
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
