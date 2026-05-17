@@ -1,6 +1,11 @@
 @model WebApp.Models.Staff.StaffApplicantDetailsViewModel
 @{
     ViewData["Title"] = "Карточка абитуриента";
+    var selectedProgramIds = Model.Admission?.Programs.Select(x => x.ProgramId).ToHashSet() ?? new HashSet<Guid>();
+    var availablePrograms = Model.AvailablePrograms
+        .Where(x => !selectedProgramIds.Contains(x.Id))
+        .OrderBy(x => x.Title)
+        .ToList();
 }
 
 <h2>Карточка абитуриента</h2>
@@ -99,7 +104,13 @@ else
                 <input type="hidden" name="admissionId" value="@Model.Admission.Id" />
 
                 <div class="col-md-8">
-                    <input type="text" name="programId" class="form-control" placeholder="Вставьте Guid программы" />
+                    <select name="programId" class="form-control">
+                        <option value="">Выберите программу</option>
+                        @foreach (var program in availablePrograms)
+                        {
+                            <option value="@program.Id">@program.Code - @program.Title</option>
+                        }
+                    </select>
                 </div>
                 <div class="col-md-2">
                     <input type="number" name="priority" value="1" min="1" class="form-control" />

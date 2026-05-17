@@ -22,11 +22,20 @@ public class AdmissionApiService : IAdmissionApiService
         _httpContextAccessor = httpContextAccessor;
     }
 
+    private string? GetBaseUrl()
+    {
+        var baseUrl = _configuration["ApiUrls:Admission"];
+        return string.IsNullOrWhiteSpace(baseUrl) ? null : baseUrl.TrimEnd('/');
+    }
+
     public async Task<ApiResult<string>> CreateAsync(CreateAdmissionViewModel model)
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
-        var baseUrl = _configuration["ApiUrls:Admission"];
+        var baseUrl = GetBaseUrl();
+        if (baseUrl == null)
+            return ApiResult<string>.Fail("Не настроен ApiUrls:Admission");
+
         var response = await _httpClient.PostAsync($"{baseUrl}/admissions", null);
         var content = await response.Content.ReadAsStringAsync();
 
@@ -39,7 +48,10 @@ public class AdmissionApiService : IAdmissionApiService
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
-        var baseUrl = _configuration["ApiUrls:Admission"];
+        var baseUrl = GetBaseUrl();
+        if (baseUrl == null)
+            return ApiResult<AdmissionViewModel>.Fail("Не настроен ApiUrls:Admission");
+
         var response = await _httpClient.GetAsync($"{baseUrl}/admissions/my");
 
         if (response.StatusCode == HttpStatusCode.NotFound)
@@ -62,7 +74,10 @@ public class AdmissionApiService : IAdmissionApiService
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
-        var baseUrl = _configuration["ApiUrls:Admission"];
+        var baseUrl = GetBaseUrl();
+        if (baseUrl == null)
+            return ApiResult<AdmissionViewModel>.Fail("Не настроен ApiUrls:Admission");
+
         var response = await _httpClient.GetAsync($"{baseUrl}/admissions/applicant/{applicantUserId}");
 
         if (response.StatusCode == HttpStatusCode.NotFound)
@@ -85,7 +100,10 @@ public class AdmissionApiService : IAdmissionApiService
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
-        var baseUrl = _configuration["ApiUrls:Admission"];
+        var baseUrl = GetBaseUrl();
+        if (baseUrl == null)
+            return ApiResult<List<AdmissionViewModel>>.Fail("Не настроен ApiUrls:Admission");
+
         var response = await _httpClient.GetAsync($"{baseUrl}/admissions");
 
         if (!response.IsSuccessStatusCode)
@@ -103,7 +121,10 @@ public class AdmissionApiService : IAdmissionApiService
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
-        var baseUrl = _configuration["ApiUrls:Admission"];
+        var baseUrl = GetBaseUrl();
+        if (baseUrl == null)
+            return ApiResult<string>.Fail("Не настроен ApiUrls:Admission");
+
         var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/admissions/my/programs", new
         {
             programId,
@@ -121,7 +142,10 @@ public class AdmissionApiService : IAdmissionApiService
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
-        var baseUrl = _configuration["ApiUrls:Admission"];
+        var baseUrl = GetBaseUrl();
+        if (baseUrl == null)
+            return ApiResult<string>.Fail("Не настроен ApiUrls:Admission");
+
         var response = await _httpClient.PutAsJsonAsync($"{baseUrl}/admissions/my/programs/{programId}/priority", new
         {
             priority
@@ -138,7 +162,10 @@ public class AdmissionApiService : IAdmissionApiService
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
-        var baseUrl = _configuration["ApiUrls:Admission"];
+        var baseUrl = GetBaseUrl();
+        if (baseUrl == null)
+            return ApiResult<string>.Fail("Не настроен ApiUrls:Admission");
+
         var response = await _httpClient.DeleteAsync($"{baseUrl}/admissions/my/programs/{programId}");
         var content = await response.Content.ReadAsStringAsync();
 
@@ -151,7 +178,10 @@ public class AdmissionApiService : IAdmissionApiService
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
-        var baseUrl = _configuration["ApiUrls:Admission"];
+        var baseUrl = GetBaseUrl();
+        if (baseUrl == null)
+            return ApiResult<string>.Fail("Не настроен ApiUrls:Admission");
+
         var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/admissions/{admissionId}/programs", new
         {
             programId,
@@ -169,7 +199,10 @@ public class AdmissionApiService : IAdmissionApiService
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
-        var baseUrl = _configuration["ApiUrls:Admission"];
+        var baseUrl = GetBaseUrl();
+        if (baseUrl == null)
+            return ApiResult<string>.Fail("Не настроен ApiUrls:Admission");
+
         var response = await _httpClient.PutAsJsonAsync($"{baseUrl}/admissions/{admissionId}/programs/{programId}/priority", new
         {
             priority
@@ -186,7 +219,10 @@ public class AdmissionApiService : IAdmissionApiService
     {
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
-        var baseUrl = _configuration["ApiUrls:Admission"];
+        var baseUrl = GetBaseUrl();
+        if (baseUrl == null)
+            return ApiResult<string>.Fail("Не настроен ApiUrls:Admission");
+
         var response = await _httpClient.DeleteAsync($"{baseUrl}/admissions/{admissionId}/programs/{programId}");
         var content = await response.Content.ReadAsStringAsync();
 

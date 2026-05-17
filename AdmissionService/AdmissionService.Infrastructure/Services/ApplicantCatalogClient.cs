@@ -19,7 +19,11 @@ public class ApplicantCatalogClient : IApplicantCatalogClient
     public async Task<ApplicantProfileDto?> GetByUserIdAsync(Guid userId)
     {
         var baseUrl = _configuration["ApiUrls:Applicant"];
-        var response = await _httpClient.GetAsync($"{baseUrl}/applicant/{userId}");
+
+        if (string.IsNullOrWhiteSpace(baseUrl))
+            return null;
+
+        var response = await _httpClient.GetAsync($"{baseUrl.TrimEnd('/')}/applicant/{userId}");
 
         if (!response.IsSuccessStatusCode)
             return null;

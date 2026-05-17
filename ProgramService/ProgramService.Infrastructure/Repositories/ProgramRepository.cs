@@ -22,6 +22,18 @@ public class ProgramRepository : IProgramRepository
             .ToListAsync();
     }
 
+    public async Task<StudyProgram?> GetByIdAsync(Guid id)
+    {
+        return await _context.StudyPrograms
+            .FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    public async Task<StudyProgram?> GetByExternalIdAsync(string externalId)
+    {
+        return await _context.StudyPrograms
+            .FirstOrDefaultAsync(x => x.ExternalId == externalId);
+    }
+
     public async Task<(List<StudyProgram> Items, int TotalCount)> GetPagedAsync(GetProgramsQuery query)
     {
         var page = query.Page < 1 ? 1 : query.Page;
@@ -32,34 +44,33 @@ public class ProgramRepository : IProgramRepository
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var search = query.Search.Trim().ToLower();
-
             programs = programs.Where(x =>
-                x.Title.ToLower().Contains(search) ||
-                x.Code.ToLower().Contains(search));
+                x.Code.ToLower().Contains(search) ||
+                x.Title.ToLower().Contains(search));
         }
 
         if (!string.IsNullOrWhiteSpace(query.Faculty))
         {
             var faculty = query.Faculty.Trim().ToLower();
-            programs = programs.Where(x => x.Faculty.ToLower() == faculty);
+            programs = programs.Where(x => x.Faculty.ToLower().Contains(faculty));
         }
 
         if (!string.IsNullOrWhiteSpace(query.EducationLevel))
         {
             var level = query.EducationLevel.Trim().ToLower();
-            programs = programs.Where(x => x.EducationLevel.ToLower() == level);
+            programs = programs.Where(x => x.EducationLevel.ToLower().Contains(level));
         }
 
         if (!string.IsNullOrWhiteSpace(query.EducationForm))
         {
             var form = query.EducationForm.Trim().ToLower();
-            programs = programs.Where(x => x.EducationForm.ToLower() == form);
+            programs = programs.Where(x => x.EducationForm.ToLower().Contains(form));
         }
 
         if (!string.IsNullOrWhiteSpace(query.Language))
         {
             var language = query.Language.Trim().ToLower();
-            programs = programs.Where(x => x.Language.ToLower() == language);
+            programs = programs.Where(x => x.Language.ToLower().Contains(language));
         }
 
         var totalCount = await programs.CountAsync();
@@ -71,18 +82,6 @@ public class ProgramRepository : IProgramRepository
             .ToListAsync();
 
         return (items, totalCount);
-    }
-
-    public async Task<StudyProgram?> GetByIdAsync(Guid id)
-    {
-        return await _context.StudyPrograms
-            .FirstOrDefaultAsync(x => x.Id == id);
-    }
-
-    public async Task<StudyProgram?> GetByExternalIdAsync(string externalId)
-    {
-        return await _context.StudyPrograms
-            .FirstOrDefaultAsync(x => x.ExternalId == externalId);
     }
 
     public async Task CreateAsync(StudyProgram program)

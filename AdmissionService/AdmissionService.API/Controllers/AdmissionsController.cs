@@ -96,7 +96,7 @@ public class AdmissionsController : ControllerBase
         return Ok(await _service.GetPagedAsync(query, GetCurrentUserId(), GetCurrentRole()));
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "Manager,MainManager,Admin")]
     [HttpGet("applicant/{applicantUserId:guid}")]
     public async Task<IActionResult> GetByApplicantUserId(Guid applicantUserId)
     {

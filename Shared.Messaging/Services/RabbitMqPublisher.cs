@@ -1,39 +1,38 @@
+using Microsoft.Extensions.Configuration;
+using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
-using RabbitMQ.Client;
 using Shared.Messaging.Interfaces;
-using Microsoft.Extensions.Configuration;
 
 namespace Shared.Messaging.Services;
 
-public class RabbitMqPublisher : IMessagePublisher, IDisposable
+public class RabbitMqPublisher : IMessagePublisher
 {
-    private readonly IConnection _connection;
-    private readonly ConnectionFactory _factory;
+    private readonly IConfiguration _configuration;
     private readonly string _queueName;
 
     public RabbitMqPublisher(IConfiguration configuration)
     {
+        _configuration = configuration;
         _queueName = configuration["RabbitMq:QueueName"] ?? "notification-queue";
-
-        _factory = new ConnectionFactory
-        {
-            HostName = configuration["RabbitMq:Host"] ?? "localhost",
-            Port = int.TryParse(configuration["RabbitMq:Port"], out var port) ? port : 5672,
-            UserName = configuration["RabbitMq:UserName"] ?? "guest",
-            Password = configuration["RabbitMq:Password"] ?? "guest"
-        };
-
-        _connection = _factory.CreateConnection();
     }
 
     public Task PublishAsync<T>(T message)
     {
-        using var channel = _connection.CreateModel();
+        var factory = new ConnectionFactory
+        {
+            HostName = _configuration["RabbitMq:HostName"] ?? "localhost",
+            UserName = _configuration["RabbitMq:UserName"] ?? "guest",
+            Password = _configuration["RabbitMq:Password"] ?? "guest",
+            Port = int.TryParse(_configuration["RabbitMq:Port"], out var port) ? port : 5672
+        };
+
+        using var connection = factory.CreateConnection();
+        using var channel = connection.CreateModel();
 
         channel.QueueDeclare(
             queue: _queueName,
-            durable: false,
+            durable: true,
             exclusive: false,
             autoDelete: false,
             arguments: null);
@@ -42,16 +41,11 @@ public class RabbitMqPublisher : IMessagePublisher, IDisposable
         var body = Encoding.UTF8.GetBytes(json);
 
         channel.BasicPublish(
-            exchange: "",
+            exchange: string.Empty,
             routingKey: _queueName,
             basicProperties: null,
             body: body);
 
         return Task.CompletedTask;
-    }
-
-    public void Dispose()
-    {
-        _connection?.Dispose();
     }
 }

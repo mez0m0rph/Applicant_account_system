@@ -98,13 +98,19 @@ public class StaffController : Controller
         var profileResult = await _applicantApiService.GetByUserIdAsync(applicantUserId);
         var documentsResult = await _documentApiService.GetByApplicantUserIdAsync(applicantUserId);
         var admissionResult = await _admissionApiService.GetByApplicantUserIdAsync(applicantUserId);
+        var programsResult = await _programApiService.GetAllAsync(new ProgramsFilterViewModel
+        {
+            Page = 1,
+            PageSize = 1000
+        });
 
         var model = new StaffApplicantDetailsViewModel
         {
             ApplicantUserId = applicantUserId,
             Profile = profileResult.Success ? profileResult.Data : null,
             Documents = documentsResult.Success ? (documentsResult.Data ?? new List<DocumentViewModel>()) : new(),
-            Admission = admissionResult.Success ? admissionResult.Data : null
+            Admission = admissionResult.Success ? admissionResult.Data : null,
+            AvailablePrograms = programsResult.Success ? (programsResult.Data?.Items ?? new List<ProgramViewModel>()) : new()
         };
 
         if (!profileResult.Success && TempData["Message"] == null)
@@ -115,6 +121,9 @@ public class StaffController : Controller
 
         if (!admissionResult.Success && TempData["Message"] == null)
             TempData["Message"] = admissionResult.Error;
+
+        if (!programsResult.Success && TempData["Message"] == null)
+            TempData["Message"] = programsResult.Error;
 
         return View(model);
     }

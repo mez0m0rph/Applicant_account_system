@@ -45,7 +45,7 @@ public class ApplicantController : ControllerBase
         return Ok(result);
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "Manager,MainManager,Admin")]
     [HttpGet("{userId:guid}")]
     public async Task<IActionResult> GetByUserId(Guid userId)
     {
