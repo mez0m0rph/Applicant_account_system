@@ -1,24 +1,30 @@
 @{
     var accessToken = Context.Session.GetString("AccessToken");
     var userRole = Context.Session.GetString("UserRole");
+
     var isAuthenticated = !string.IsNullOrWhiteSpace(accessToken);
 
     var isApplicant = userRole == "Applicant";
     var isManager = userRole == "Manager";
     var isMainManager = userRole == "MainManager";
     var isAdmin = userRole == "Admin";
+
     var isStaff = isManager || isMainManager || isAdmin;
     var canManageManagers = isMainManager || isAdmin;
 }
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>@ViewData["Title"] - ApplicantSystem</title>
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
+
 <body>
 <header>
     <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom mb-3">
@@ -27,17 +33,21 @@
 
             <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                 <ul class="navbar-nav flex-grow-1">
+
                     @if (isAuthenticated && isApplicant)
                     {
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Applicant" asp-action="Profile">Профиль</a>
                         </li>
+
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Programs" asp-action="Index">Программы</a>
                         </li>
+
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Admissions" asp-action="My">Мое заявление</a>
                         </li>
+
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Documents" asp-action="My">Документы</a>
                         </li>
@@ -56,6 +66,14 @@
                             <a class="nav-link text-dark" asp-controller="Staff" asp-action="Managers">Менеджеры</a>
                         </li>
                     }
+
+                    @if (isAuthenticated && isAdmin)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Admin" asp-action="Imports">Импорт справочников</a>
+                        </li>
+                    }
+
                 </ul>
 
                 <ul class="navbar-nav">
@@ -64,9 +82,11 @@
                         <li class="nav-item">
                             <span class="nav-link text-muted">@userRole</span>
                         </li>
+
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Account" asp-action="ChangePassword">Сменить пароль</a>
                         </li>
+
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Выход</a>
                         </li>
@@ -76,6 +96,7 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Вход</a>
                         </li>
+
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Регистрация</a>
                         </li>
@@ -101,6 +122,7 @@
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
+
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

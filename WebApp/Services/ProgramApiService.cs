@@ -12,7 +12,10 @@ public class ProgramApiService : IProgramApiService
     private readonly IConfiguration _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ProgramApiService(HttpClient httpClient, IConfiguration configuration, IHttpContextAccessor httpContextAccessor)
+    public ProgramApiService(
+        HttpClient httpClient,
+        IConfiguration configuration,
+        IHttpContextAccessor httpContextAccessor)
     {
         _httpClient = httpClient;
         _configuration = configuration;
@@ -44,6 +47,7 @@ public class ProgramApiService : IProgramApiService
         query.Add($"pageSize={filter.PageSize}");
 
         var url = new StringBuilder($"{baseUrl}/programs");
+
         if (query.Count > 0)
             url.Append('?').Append(string.Join("&", query));
 
@@ -53,6 +57,7 @@ public class ProgramApiService : IProgramApiService
             return ApiResult<PagedProgramsViewModel>.Fail(await response.Content.ReadAsStringAsync());
 
         var data = await response.Content.ReadFromJsonAsync<PagedProgramsViewModel>();
+
         return ApiResult<PagedProgramsViewModel>.Ok(data ?? new PagedProgramsViewModel());
     }
 
@@ -61,12 +66,14 @@ public class ProgramApiService : IProgramApiService
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
         var baseUrl = _configuration["ApiUrls:Program"];
-        var response = await _httpClient.PostAsync($"{baseUrl}/programs/import", null);
+
+        var response = await _httpClient.PostAsync($"{baseUrl}/catalog/import", null);
+
         var content = await response.Content.ReadAsStringAsync();
 
         return response.IsSuccessStatusCode
-            ? ApiResult<string>.Ok(ReadMessage(content, "Импорт завершен"))
-            : ApiResult<string>.Fail(ReadMessage(content, "Ошибка импорта"));
+            ? ApiResult<string>.Ok(ReadMessage(content, "Импорт справочников завершен"))
+            : ApiResult<string>.Fail(ReadMessage(content, "Ошибка импорта справочников"));
     }
 
     public async Task<ApiResult<ProgramImportStatusViewModel>> GetImportStatusAsync()
@@ -74,13 +81,17 @@ public class ProgramApiService : IProgramApiService
         ApiAuthHelper.ApplyBearerToken(_httpClient, _httpContextAccessor);
 
         var baseUrl = _configuration["ApiUrls:Program"];
-        var response = await _httpClient.GetAsync($"{baseUrl}/programs/import/status");
+
+        var response = await _httpClient.GetAsync($"{baseUrl}/catalog/import/status");
+
         var content = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
-            return ApiResult<ProgramImportStatusViewModel>.Fail(ReadMessage(content, "Ошибка получения статуса импорта"));
+            return ApiResult<ProgramImportStatusViewModel>.Fail(
+                ReadMessage(content, "Ошибка получения статуса импорта"));
 
         var data = await response.Content.ReadFromJsonAsync<ProgramImportStatusViewModel>();
+
         return ApiResult<ProgramImportStatusViewModel>.Ok(data ?? new ProgramImportStatusViewModel());
     }
 
@@ -101,6 +112,9 @@ public class ProgramApiService : IProgramApiService
 
                 if (root.TryGetProperty("message", out var messageProp))
                     return messageProp.GetString() ?? fallback;
+
+                if (root.TryGetProperty("importedPrograms", out var importedProgramsProp))
+                    return $"Импортировано программ: {importedProgramsProp.GetInt32()}";
 
                 if (root.TryGetProperty("imported", out var importedProp))
                     return $"Импортировано записей: {importedProp.GetInt32()}";

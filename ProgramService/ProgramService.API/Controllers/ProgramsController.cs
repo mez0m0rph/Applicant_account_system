@@ -14,13 +14,16 @@ public class ProgramsController : ControllerBase
     private readonly IProgramImportService _importService;
 
     private static readonly object ImportLock = new();
+
     private static ProgramImportStatusDto LastImportStatus = new()
     {
         Status = "NeverStarted",
-        Message = "Импорт еще не запускался"
+        Message = "Импорт справочников еще не запускался"
     };
 
-    public ProgramsController(IProgramRepository repository, IProgramImportService importService)
+    public ProgramsController(
+        IProgramRepository repository,
+        IProgramImportService importService)
     {
         _repository = repository;
         _importService = importService;
@@ -71,7 +74,9 @@ public class ProgramsController : ControllerBase
             page,
             pageSize,
             totalCount = result.TotalCount,
-            totalPages = result.TotalCount == 0 ? 0 : (int)Math.Ceiling(result.TotalCount / (double)pageSize)
+            totalPages = result.TotalCount == 0
+                ? 0
+                : (int)Math.Ceiling(result.TotalCount / (double)pageSize)
         });
     }
 
@@ -80,6 +85,7 @@ public class ProgramsController : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _repository.GetByIdAsync(id);
+
         if (result == null)
             return NotFound();
 
@@ -103,18 +109,44 @@ public class ProgramsController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPost("import")]
-    public async Task<IActionResult> Import()
+    public Task<IActionResult> ImportPrograms()
+    {
+        return RunCatalogImportAsync();
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("~/catalog/import")]
+    public Task<IActionResult> ImportCatalogs()
+    {
+        return RunCatalogImportAsync();
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("import/status")]
+    public IActionResult GetProgramImportStatus()
+    {
+        return GetCatalogImportStatusResult();
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("~/catalog/import/status")]
+    public IActionResult GetCatalogImportStatus()
+    {
+        return GetCatalogImportStatusResult();
+    }
+
+    private async Task<IActionResult> RunCatalogImportAsync()
     {
         lock (ImportLock)
         {
             if (LastImportStatus.Status == "Running")
-                return BadRequest(new { error = "Импорт уже выполняется" });
+                return BadRequest(new { error = "Импорт справочников уже выполняется" });
 
             LastImportStatus = new ProgramImportStatusDto
             {
                 Status = "Running",
                 StartedAt = DateTime.UtcNow,
-                Message = "Импорт выполняется"
+                Message = "Импорт справочников выполняется"
             };
         }
 
@@ -130,11 +162,16 @@ public class ProgramsController : ControllerBase
                     StartedAt = LastImportStatus.StartedAt,
                     FinishedAt = DateTime.UtcNow,
                     ImportedCount = count,
-                    Message = "Импорт завершен успешно"
+                    Message = "Импорт справочников завершен успешно. Обновлен справочник программ и связанные данные факультетов и уровней образования."
                 };
             }
 
-            return Ok(new { imported = count });
+            return Ok(new
+            {
+                imported = count,
+                importedPrograms = count,
+                message = $"Импорт справочников завершен. Импортировано программ: {count}"
+            });
         }
         catch (Exception ex)
         {
@@ -154,9 +191,7 @@ public class ProgramsController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Admin")]
-    [HttpGet("import/status")]
-    public IActionResult GetImportStatus()
+    private IActionResult GetCatalogImportStatusResult()
     {
         lock (ImportLock)
         {
