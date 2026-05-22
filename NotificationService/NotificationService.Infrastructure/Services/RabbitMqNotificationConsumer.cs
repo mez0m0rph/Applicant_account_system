@@ -40,7 +40,7 @@ public class RabbitMqNotificationConsumer : BackgroundService
         };
 
         var connection = factory.CreateConnection();
-        var channel = connection.CreateModel();
+        var channel = connection.CreateModel();  // канал, через который читаются/пишутся сообщения
 
         channel.QueueDeclare(
             queue: _options.QueueName,
@@ -51,14 +51,14 @@ public class RabbitMqNotificationConsumer : BackgroundService
 
         var consumer = new EventingBasicConsumer(channel);
 
-        consumer.Received += async (_, ea) =>
+        consumer.Received += async (_, ea) =>  // при получении сообщения
         {
             try
             {
                 var body = ea.Body.ToArray();
-                var json = Encoding.UTF8.GetString(body);
+                var json = Encoding.UTF8.GetString(body);  
 
-                var message = JsonSerializer.Deserialize<NotificationRequestedEvent>(json);
+                var message = JsonSerializer.Deserialize<NotificationRequestedEvent>(json);  // перевод в json
 
                 if (message == null)
                 {
@@ -66,10 +66,10 @@ public class RabbitMqNotificationConsumer : BackgroundService
                     return;
                 }
 
-                using var scope = _scopeFactory.CreateScope();
+                using var scope = _scopeFactory.CreateScope();  // получаем INotificationService
                 var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
 
-                await notificationService.CreateAsync(new CreateNotificationRequest
+                await notificationService.CreateAsync(new CreateNotificationRequest  // уведомление
                 {
                     UserId = message.UserId,
                     Email = message.Email,
@@ -78,12 +78,12 @@ public class RabbitMqNotificationConsumer : BackgroundService
                     Type = NotificationService.Domain.Enums.NotificationType.Email
                 });
 
-                channel.BasicAck(ea.DeliveryTag, multiple: false);
+                channel.BasicAck(ea.DeliveryTag, multiple: false);  // подтверждаем успешную обработку
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ошибка при обработке сообщения из RabbitMQ");
-                channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: true);
+                channel.BasicNack(ea.DeliveryTag, multiple: false, requeue: true);  // обратно в очередь сообщение (не обработалось)
             }
         };
 
