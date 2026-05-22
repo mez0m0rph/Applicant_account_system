@@ -5,8 +5,8 @@ namespace AdmissionService.API.Middleware;
 
 public class ExceptionHandlingMiddleware
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly RequestDelegate _next;  // тк обработчик идет первым в конвейере
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger;   // для записи логов в консоль/файл
 
     public ExceptionHandlingMiddleware(
         RequestDelegate next,
@@ -16,7 +16,7 @@ public class ExceptionHandlingMiddleware
         _logger = logger;
     }
 
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context)  // автоматически вызывается при каждом запросе
     {
         try
         {
@@ -26,15 +26,15 @@ public class ExceptionHandlingMiddleware
         {
             await WriteErrorAsync(context, HttpStatusCode.Unauthorized, ex.Message);
         }
-        catch (ArgumentException ex)
+        catch (ArgumentException ex)  // неверные данные (отрицательный Id/пустой email)
         {
             await WriteErrorAsync(context, HttpStatusCode.BadRequest, ex.Message);
         }
-        catch (KeyNotFoundException ex)
+        catch (KeyNotFoundException ex)  // когда не нашли что-то в БД
         {
             await WriteErrorAsync(context, HttpStatusCode.NotFound, ex.Message);
         }
-        catch (Exception ex)
+        catch (Exception ex)  // все остальные ошибки 
         {
             _logger.LogError(ex, "Unhandled exception");
             await WriteErrorAsync(context, HttpStatusCode.BadRequest, ex.Message);

@@ -58,8 +58,8 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication();  // извлекает из заголовка запроса JWT-токен, проверяет валидность и записывает данные юзера в систему
+app.UseAuthorization();  // проверка прав пользователя
 app.MapControllers();
 
 app.Run();
