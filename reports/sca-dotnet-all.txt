@@ -1,0 +1,510 @@
+===== ./NotificationService/NotificationService.Application/NotificationService.Application.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "NotificationService.Application" не содержит уязвимых пакетов для текущих источников.
+===== ./NotificationService/NotificationService.Infrastructure/NotificationService.Infrastructure.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "NotificationService.Infrastructure" не содержит уязвимых пакетов для текущих источников.
+===== ./NotificationService/NotificationService.Domain/NotificationService.Domain.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "NotificationService.Domain" не содержит уязвимых пакетов для текущих источников.
+===== ./NotificationService/NotificationService.API/NotificationService.API.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "NotificationService.API" не содержит уязвимых пакетов для текущих источников.
+===== ./AdmissionService/AdmissionService.Infrastructure/AdmissionService.Infrastructure.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AdmissionService.Infrastructure" не содержит уязвимых пакетов для текущих источников.
+===== ./AdmissionService/AdmissionService.Domain/AdmissionService.Domain.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AdmissionService.Domain" не содержит уязвимых пакетов для текущих источников.
+===== ./AdmissionService/AdmissionService.API/AdmissionService.API.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AdmissionService.API" не содержит уязвимых пакетов для текущих источников.
+===== ./AdmissionService/AdmissionService.Application/AdmissionService.Application.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AdmissionService.Application" не содержит уязвимых пакетов для текущих источников.
+===== ./ManagerService/ManagerService.Domain/ManagerService.Domain.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ManagerService.Domain" не содержит уязвимых пакетов для текущих источников.
+===== ./ManagerService/ManagerService.Infrastructure/ManagerService.Infrastructure.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ManagerService.Infrastructure" не содержит уязвимых пакетов для текущих источников.
+===== ./ManagerService/ManagerService.API/ManagerService.API.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ManagerService.API" не содержит уязвимых пакетов для текущих источников.
+===== ./ManagerService/ManagerService.Application/ManagerService.Application.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ManagerService.Application" не содержит уязвимых пакетов для текущих источников.
+===== ./ProgramService/ProgramService.Domain/ProgramService.Domain.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ProgramService.Domain" не содержит уязвимых пакетов для текущих источников.
+===== ./ProgramService/ProgramService.Application/ProgramService.Application.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ProgramService.Application" не содержит уязвимых пакетов для текущих источников.
+===== ./ProgramService/ProgramService.Infrastructure/ProgramService.Infrastructure.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ProgramService.Infrastructure" не содержит уязвимых пакетов для текущих источников.
+===== ./ProgramService/ProgramService.API/ProgramService.API.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ProgramService.API" не содержит уязвимых пакетов для текущих источников.
+===== ./AuthService/AuthService.Infrastructure/AuthService.Infrastructure.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AuthService.Infrastructure" не содержит уязвимых пакетов для текущих источников.
+===== ./AuthService/AuthService.Application/AuthService.Application.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AuthService.Application" не содержит уязвимых пакетов для текущих источников.
+===== ./AuthService/AuthService.API/AuthService.API.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AuthService.API" не содержит уязвимых пакетов для текущих источников.
+===== ./AuthService/AuthService.Domain/AuthService.Domain.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AuthService.Domain" не содержит уязвимых пакетов для текущих источников.
+===== ./WebApp/WebApp.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "WebApp" не содержит уязвимых пакетов для текущих источников.
+===== ./DocumentService/DocumentService.Domain/DocumentService.Domain.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "DocumentService.Domain" не содержит уязвимых пакетов для текущих источников.
+===== ./DocumentService/DocumentService.Infrastructure/DocumentService.Infrastructure.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "DocumentService.Infrastructure" не содержит уязвимых пакетов для текущих источников.
+===== ./DocumentService/DocumentService.API/DocumentService.API.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "DocumentService.API" не содержит уязвимых пакетов для текущих источников.
+===== ./DocumentService/DocumentService.Application/DocumentService.Application.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "DocumentService.Application" не содержит уязвимых пакетов для текущих источников.
+===== ./Shared.Messaging/Shared.Messaging.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "Shared.Messaging" не содержит уязвимых пакетов для текущих источников.
+===== ./Shared.Contracts/Shared.Contracts.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "Shared.Contracts" не содержит уязвимых пакетов для текущих источников.
+===== ./ApplicantService/ApplicantService.API/ApplicantService.API.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ApplicantService.API" не содержит уязвимых пакетов для текущих источников.
+===== ./ApplicantService/ApplicantService.Application/ApplicantService.Application.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ApplicantService.Application" не содержит уязвимых пакетов для текущих источников.
+===== ./ApplicantService/ApplicantService.Domain/ApplicantService.Domain.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ApplicantService.Domain" не содержит уязвимых пакетов для текущих источников.
+===== ./ApplicantService/ApplicantService.Infrastructure/ApplicantService.Infrastructure.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ApplicantService.Infrastructure" не содержит уязвимых пакетов для текущих источников.
+===== ./NotificationService/NotificationService.Application/NotificationService.Application.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "NotificationService.Application" не содержит уязвимых пакетов для текущих источников.
+===== ./NotificationService/NotificationService.Infrastructure/NotificationService.Infrastructure.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "NotificationService.Infrastructure" не содержит уязвимых пакетов для текущих источников.
+===== ./NotificationService/NotificationService.Domain/NotificationService.Domain.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "NotificationService.Domain" не содержит уязвимых пакетов для текущих источников.
+===== ./NotificationService/NotificationService.API/NotificationService.API.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "NotificationService.API" не содержит уязвимых пакетов для текущих источников.
+===== ./AdmissionService/AdmissionService.Infrastructure/AdmissionService.Infrastructure.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AdmissionService.Infrastructure" не содержит уязвимых пакетов для текущих источников.
+===== ./AdmissionService/AdmissionService.Domain/AdmissionService.Domain.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AdmissionService.Domain" не содержит уязвимых пакетов для текущих источников.
+===== ./AdmissionService/AdmissionService.API/AdmissionService.API.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AdmissionService.API" не содержит уязвимых пакетов для текущих источников.
+===== ./AdmissionService/AdmissionService.Application/AdmissionService.Application.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AdmissionService.Application" не содержит уязвимых пакетов для текущих источников.
+===== ./ManagerService/ManagerService.Domain/ManagerService.Domain.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ManagerService.Domain" не содержит уязвимых пакетов для текущих источников.
+===== ./ManagerService/ManagerService.Infrastructure/ManagerService.Infrastructure.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ManagerService.Infrastructure" не содержит уязвимых пакетов для текущих источников.
+===== ./ManagerService/ManagerService.API/ManagerService.API.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ManagerService.API" не содержит уязвимых пакетов для текущих источников.
+===== ./ManagerService/ManagerService.Application/ManagerService.Application.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ManagerService.Application" не содержит уязвимых пакетов для текущих источников.
+===== ./ProgramService/ProgramService.Domain/ProgramService.Domain.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ProgramService.Domain" не содержит уязвимых пакетов для текущих источников.
+===== ./ProgramService/ProgramService.Application/ProgramService.Application.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ProgramService.Application" не содержит уязвимых пакетов для текущих источников.
+===== ./ProgramService/ProgramService.Infrastructure/ProgramService.Infrastructure.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ProgramService.Infrastructure" не содержит уязвимых пакетов для текущих источников.
+===== ./ProgramService/ProgramService.API/ProgramService.API.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ProgramService.API" не содержит уязвимых пакетов для текущих источников.
+===== ./AuthService/AuthService.Infrastructure/AuthService.Infrastructure.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AuthService.Infrastructure" не содержит уязвимых пакетов для текущих источников.
+===== ./AuthService/AuthService.Application/AuthService.Application.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AuthService.Application" не содержит уязвимых пакетов для текущих источников.
+===== ./AuthService/AuthService.API/AuthService.API.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AuthService.API" не содержит уязвимых пакетов для текущих источников.
+===== ./AuthService/AuthService.Domain/AuthService.Domain.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "AuthService.Domain" не содержит уязвимых пакетов для текущих источников.
+===== ./WebApp/WebApp.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "WebApp" не содержит уязвимых пакетов для текущих источников.
+===== ./DocumentService/DocumentService.Domain/DocumentService.Domain.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "DocumentService.Domain" не содержит уязвимых пакетов для текущих источников.
+===== ./DocumentService/DocumentService.Infrastructure/DocumentService.Infrastructure.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "DocumentService.Infrastructure" не содержит уязвимых пакетов для текущих источников.
+===== ./DocumentService/DocumentService.API/DocumentService.API.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "DocumentService.API" не содержит уязвимых пакетов для текущих источников.
+===== ./DocumentService/DocumentService.Application/DocumentService.Application.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "DocumentService.Application" не содержит уязвимых пакетов для текущих источников.
+===== ./Shared.Messaging/Shared.Messaging.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "Shared.Messaging" не содержит уязвимых пакетов для текущих источников.
+===== ./Shared.Contracts/Shared.Contracts.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "Shared.Contracts" не содержит уязвимых пакетов для текущих источников.
+===== ./security-demo/sca-vulnerable/sca-vulnerable.csproj =====
+  Определение проектов для восстановления...
+/Users/a0000/Applicant_account_system/security-demo/sca-vulnerable/sca-vulnerable.csproj : warning NU1510: PackageReference System.Text.Encodings.Web не будет урезано. Рассмотрите возможность удаления этого пакета из зависимостей, так как он, вероятно, не требуется.
+/Users/a0000/Applicant_account_system/security-demo/sca-vulnerable/sca-vulnerable.csproj : warning NU1904: У пакета "System.Text.Encodings.Web" 4.5.0 есть известная уязвимость https://github.com/advisories/GHSA-ghhp-997w-qr28 (уровень серьезности: критический уровень)
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Проект "sca-vulnerable" содержит следующие уязвимые пакеты
+   [net10.0]: 
+   Пакет верхнего уровня            Запрошено   Разрешено   Уровень серьезности   URL-адрес рекомендаций                           
+   > System.Text.Encodings.Web      4.5.0       4.5.0       Critical              https://github.com/advisories/GHSA-ghhp-997w-qr28
+
+===== ./ApplicantService/ApplicantService.API/ApplicantService.API.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ApplicantService.API" не содержит уязвимых пакетов для текущих источников.
+===== ./ApplicantService/ApplicantService.Application/ApplicantService.Application.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ApplicantService.Application" не содержит уязвимых пакетов для текущих источников.
+===== ./ApplicantService/ApplicantService.Domain/ApplicantService.Domain.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ApplicantService.Domain" не содержит уязвимых пакетов для текущих источников.
+===== ./ApplicantService/ApplicantService.Infrastructure/ApplicantService.Infrastructure.csproj =====
+  Определение проектов для восстановления...
+  Все проекты обновлены для восстановления.
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Указанный проект "ApplicantService.Infrastructure" не содержит уязвимых пакетов для текущих источников.

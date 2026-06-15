@@ -1,0 +1,24 @@
+rules:
+  - id: csharp-hardcoded-secret
+    message: "Hardcoded secret/password/token detected"
+    severity: ERROR
+    languages: [csharp]
+    pattern-regex: '(?i)(password|secret|token|apikey|api_key|connectionstring)\s*=\s*"[^\"]+"'
+
+  - id: aspnet-cookie-httponly-false
+    message: "Cookie HttpOnly is disabled"
+    severity: WARNING
+    languages: [csharp]
+    pattern-regex: 'HttpOnly\s*=\s*false'
+
+  - id: aspnet-cookie-secure-false
+    message: "Cookie SecurePolicy may be unsafe"
+    severity: WARNING
+    languages: [csharp]
+    pattern-regex: 'SecurePolicy\s*=\s*CookieSecurePolicy\.None'
+
+  - id: aspnet-require-https-disabled
+    message: "HTTPS metadata requirement is disabled"
+    severity: WARNING
+    languages: [csharp]
+    pattern-regex: 'RequireHttpsMetadata\s*=\s*false'

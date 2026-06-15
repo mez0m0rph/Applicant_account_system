@@ -1,0 +1,28 @@
+                   
+                   
+┌─────────────────┐
+│ 4 Code Findings │
+└─────────────────┘
+                                                               
+  [36m[22m[24m  ProgramService/ProgramService.API/Program.cs[0m
+    ❯❱ semgrep.aspnet-require-https-disabled
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          HTTPS metadata requirement is disabled
+                                                
+           28┆ options.RequireHttpsMetadata = false;
+                                                      
+  [36m[22m[24m  security-demo/SastVulnerableDemo.cs[0m
+   ❯❯❱ semgrep.csharp-hardcoded-secret
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Hardcoded secret/password/token detected
+                                                  
+            7┆ string password = "admin123";
+            ⋮┆----------------------------------------
+            8┆ string token = "super-secret-token";
+   
+    ❯❱ semgrep.aspnet-cookie-httponly-false
+          [31m[1m[24m❰❰ Blocking ❱❱[0m
+          Cookie HttpOnly is disabled
+                                     
+           12┆ HttpOnly = false,
+

@@ -1,0 +1,14 @@
+# Semgrep after fix report
+
+Command:
+semgrep scan --config .semgrep/security-rules.yml . --exclude security-demo
+
+Result:
+Scan completed successfully.
+Findings: 0.
+Rules run: 4.
+Targets scanned: 261.
+Blocking findings: 0.
+
+Conclusion:
+After fixing ProgramService/ProgramService.API/Program.cs and excluding the intentional demo vulnerabilities from security-demo, Semgrep found no security issues in the real project code.

@@ -1,0 +1,13 @@
+  Определение проектов для восстановления...
+/Users/a0000/Applicant_account_system/security-demo/sca-vulnerable/sca-vulnerable.csproj : warning NU1510: PackageReference System.Text.Encodings.Web не будет урезано. Рассмотрите возможность удаления этого пакета из зависимостей, так как он, вероятно, не требуется.
+/Users/a0000/Applicant_account_system/security-demo/sca-vulnerable/sca-vulnerable.csproj : warning NU1904: У пакета "System.Text.Encodings.Web" 4.5.0 есть известная уязвимость https://github.com/advisories/GHSA-ghhp-997w-qr28 (уровень серьезности: критический уровень)
+  Восстановлен /Users/a0000/Applicant_account_system/security-demo/sca-vulnerable/sca-vulnerable.csproj (за 147 мс).
+
+Использовались следующие источники:
+   https://api.nuget.org/v3/index.json
+
+Проект "sca-vulnerable" содержит следующие уязвимые пакеты
+   [net10.0]: 
+   Пакет верхнего уровня            Запрошено   Разрешено   Уровень серьезности   URL-адрес рекомендаций                           
+   > System.Text.Encodings.Web      4.5.0       4.5.0       Critical              https://github.com/advisories/GHSA-ghhp-997w-qr28
+
