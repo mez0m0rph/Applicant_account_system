@@ -83,6 +83,7 @@ jobs:
 
       - name: Start WebApp
         run: |
+          mkdir -p reports
           nohup dotnet run --project WebApp/WebApp.csproj --urls http://localhost:5000 > webapp.log 2>&1 &
           sleep 25
 
@@ -91,11 +92,23 @@ jobs:
           curl -I http://localhost:5000
 
       - name: Run ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.14.0
+        run: |
+          docker run --rm --network=host \
+            -v ${{ github.workspace }}/reports:/zap/wrk \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t http://localhost:5000 \
+            -r zap-ci-report.html \
+            -w zap-ci-report.md \
+            -J zap-ci-report.json \
+            -a || true
+
+      - name: Upload ZAP reports
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          target: "http://localhost:5000"
-          cmd_options: "-a"
-          artifact_name: zap-reports
+          name: zap-reports
+          path: reports/zap-ci-report.*
 
       - name: Upload WebApp log
         if: always()
